@@ -182,6 +182,10 @@ function MathMode() {
       <div className="problem-container">
         <form onSubmit={handleSubmit}>
           <div className="problem">
+            <span className="number">{problem.num1}</span>
+            <span className="operator">{getOperationSymbol(problem.operation)}</span>
+            <span className="number">{problem.num2}</span>
+            <span className="equals">=</span>
             <input
               ref={inputRef}
               type="number"
@@ -190,10 +194,6 @@ function MathMode() {
               className="answer-input"
               autoFocus
             />
-            <span className="operator">{getOperationSymbol(problem.operation)}</span>
-            <span className="number">{problem.num2}</span>
-            <span className="equals">=</span>
-            <span className="number">{problem.num1}</span>
           </div>
         </form>
       </div>
