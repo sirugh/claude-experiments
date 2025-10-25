@@ -69,6 +69,7 @@
   outline: none;
   padding: 0.2em;
   animation: blink-border 1s step-end infinite;
+  caret-color: transparent;
 }
 
 @keyframes blink-border {
