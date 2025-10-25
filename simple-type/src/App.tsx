@@ -14,9 +14,17 @@ function App() {
 
   return (
     <div className="app">
-      <button className="mode-toggle" onClick={toggleMode}>
-        {mode === 'math' ? '📖 Reading' : '🔢 Math'}
-      </button>
+      <div className="mode-toggle-container">
+        <span className="toggle-label">Reading</span>
+        <button
+          className={`mode-toggle ${mode === 'math' ? 'math' : 'reading'}`}
+          onClick={toggleMode}
+          aria-label="Toggle between Reading and Math modes"
+        >
+          <span className="toggle-slider"></span>
+        </button>
+        <span className="toggle-label">Math</span>
+      </div>
       {mode === 'math' ? <MathMode /> : <ReadingMode />}
     </div>
   )
