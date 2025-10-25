@@ -1,0 +1,112 @@
+.math-mode {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.math-mode.correct {
+  animation: flash-green 0.8s ease;
+}
+
+.math-mode.wrong {
+  animation: flash-red 0.8s ease;
+}
+
+@keyframes flash-green {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(0, 255, 0, 0.3);
+  }
+}
+
+@keyframes flash-red {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(255, 0, 0, 0.3);
+  }
+}
+
+.score {
+  position: absolute;
+  top: 60px;
+  right: 40px;
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.problem-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.problem {
+  display: flex;
+  align-items: center;
+  gap: 1.5em;
+  font-size: 4em;
+  font-weight: bold;
+}
+
+.answer-input {
+  width: 2.5em;
+  font-size: 1em;
+  text-align: center;
+  border: none;
+  border-bottom: 4px solid #646cff;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-weight: bold;
+  outline: none;
+  padding: 0.2em;
+  animation: blink-border 1s step-end infinite;
+}
+
+@keyframes blink-border {
+  0%, 100% {
+    border-bottom-color: #646cff;
+  }
+  50% {
+    border-bottom-color: transparent;
+  }
+}
+
+.answer-input:focus {
+  animation: blink-border 1s step-end infinite;
+}
+
+/* Remove number input spinners */
+.answer-input::-webkit-outer-spin-button,
+.answer-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.answer-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.operator, .equals, .number {
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .problem {
+    font-size: 2.5em;
+  }
+
+  .score {
+    font-size: 1.5em;
+    top: 40px;
+    right: 20px;
+  }
+}

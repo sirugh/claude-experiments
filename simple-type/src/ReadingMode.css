@@ -1,0 +1,27 @@
+.reading-mode {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder {
+  text-align: center;
+  padding: 2em;
+}
+
+.placeholder h1 {
+  font-size: 3em;
+  margin-bottom: 0.5em;
+}
+
+.placeholder p {
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+
+.placeholder .description {
+  margin-top: 1em;
+  font-size: 1.2em;
+}
