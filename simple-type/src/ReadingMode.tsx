@@ -64,6 +64,20 @@ function ReadingMode() {
     return /[.,!?;:'"\-()[\]{}]/.test(char);
   };
 
+  // Helper function to check if a character should be skipped
+  const shouldSkip = (char: string): boolean => {
+    return (!config.spaces && char === ' ') || (!config.punctuation && isPunctuation(char));
+  };
+
+  // Helper function to skip consecutive disabled characters
+  const skipDisabledChars = (startIndex: number): number => {
+    let index = startIndex;
+    while (index < currentParagraph.length && shouldSkip(currentParagraph[index])) {
+      index++;
+    }
+    return index;
+  };
+
   // Use shuffled pre-written paragraphs
   const paragraphs = useMemo(() => {
     return shuffleArray(READING_PARAGRAPHS);
@@ -113,15 +127,10 @@ function ReadingMode() {
 
       let expectedChar = currentParagraph[currentCharIndex];
 
-      // If spaces are disabled, skip space characters automatically
-      if (!config.spaces && expectedChar === ' ') {
-        setCurrentCharIndex(prev => prev + 1);
-        return;
-      }
-
-      // If punctuation is disabled, skip punctuation characters automatically
-      if (!config.punctuation && isPunctuation(expectedChar)) {
-        setCurrentCharIndex(prev => prev + 1);
+      // Skip all consecutive disabled characters (spaces and/or punctuation)
+      if (shouldSkip(expectedChar)) {
+        const nextIndex = skipDisabledChars(currentCharIndex);
+        setCurrentCharIndex(nextIndex);
         return;
       }
 
@@ -135,18 +144,11 @@ function ReadingMode() {
 
       if (isMatch) {
         setCorrect(prev => prev + 1);
-        setCurrentCharIndex(prev => prev + 1);
+        const nextIndex = currentCharIndex + 1;
 
-        // Auto-skip next character if it's disabled
-        const skipNext = (index: number) => {
-          if (index < currentParagraph.length) {
-            const nextChar = currentParagraph[index];
-            if ((!config.spaces && nextChar === ' ') || (!config.punctuation && isPunctuation(nextChar))) {
-              setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
-            }
-          }
-        };
-        skipNext(currentCharIndex + 1);
+        // Skip all consecutive disabled characters after this one
+        const finalIndex = skipDisabledChars(nextIndex);
+        setCurrentCharIndex(finalIndex);
       } else {
         setIncorrect(prev => prev + 1);
       }
@@ -180,16 +182,10 @@ function ReadingMode() {
     const typedChar = value[value.length - 1];
     let expectedChar = currentParagraph[currentCharIndex];
 
-    // If spaces are disabled, skip space characters automatically
-    if (!config.spaces && expectedChar === ' ') {
-      setCurrentCharIndex(prev => prev + 1);
-      e.target.value = ''; // Clear input
-      return;
-    }
-
-    // If punctuation is disabled, skip punctuation characters automatically
-    if (!config.punctuation && isPunctuation(expectedChar)) {
-      setCurrentCharIndex(prev => prev + 1);
+    // Skip all consecutive disabled characters (spaces and/or punctuation)
+    if (shouldSkip(expectedChar)) {
+      const nextIndex = skipDisabledChars(currentCharIndex);
+      setCurrentCharIndex(nextIndex);
       e.target.value = ''; // Clear input
       return;
     }
@@ -201,18 +197,11 @@ function ReadingMode() {
 
     if (isMatch) {
       setCorrect(prev => prev + 1);
-      setCurrentCharIndex(prev => prev + 1);
+      const nextIndex = currentCharIndex + 1;
 
-      // Auto-skip next character if it's disabled
-      const skipNext = (index: number) => {
-        if (index < currentParagraph.length) {
-          const nextChar = currentParagraph[index];
-          if ((!config.spaces && nextChar === ' ') || (!config.punctuation && isPunctuation(nextChar))) {
-            setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
-          }
-        }
-      };
-      skipNext(currentCharIndex + 1);
+      // Skip all consecutive disabled characters after this one
+      const finalIndex = skipDisabledChars(nextIndex);
+      setCurrentCharIndex(finalIndex);
     } else {
       setIncorrect(prev => prev + 1);
     }
