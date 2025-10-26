@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './ReadingMode.css';
 
 interface Score {
@@ -13,21 +13,74 @@ interface HistoryEntry {
   timestamp: number;
 }
 
+interface Config {
+  capitalLetters: boolean;
+  spaces: boolean;
+}
+
 const HISTORY_KEY = 'app:simple-type:history';
 
-// First-grader appropriate paragraphs with simple words
-const PARAGRAPHS = [
-  "The cat sat on the mat. It was a big cat. The cat was tan.",
-  "I see a red bus. The bus is big. It can go fast. I like the bus.",
-  "The dog ran to the park. He saw a ball. The dog got the ball and ran back.",
-  "The sun is up. The sky is blue. I see a bird. The bird can fly high.",
-  "Mom has a big bag. In the bag is a toy. I can play with the toy.",
-  "We go to the zoo. We see a big bear. The bear is brown. The bear eats fish.",
-  "The boy has a pet frog. The frog can hop. The frog is green and wet.",
-  "Dad and I bake a cake. The cake is for Mom. We put it in a box.",
-  "The ant is small. The ant can walk up the wall. The ant is strong.",
-  "I have a new hat. The hat is red. I wear the hat when I go out."
+// Base templates for generating sentences
+const SENTENCE_TEMPLATES = [
+  "The {animal} {verb} on the {place}.",
+  "I see a {color} {thing}.",
+  "{name} has a {size} {object}.",
+  "The {color} {animal} can {verb}.",
+  "We go to the {place}.",
+  "I like the {size} {thing}.",
+  "{name} and I {verb} a {object}.",
+  "The {thing} is {color}.",
+  "My {animal} can {verb} fast.",
+  "The {size} {object} is in the {place}."
 ];
+
+const WORDS = {
+  animal: ['cat', 'dog', 'bird', 'fish', 'frog', 'ant', 'bear', 'bug', 'pig', 'cow'],
+  verb: ['sat', 'ran', 'jump', 'play', 'walk', 'hop', 'fly', 'run', 'eat', 'see'],
+  place: ['mat', 'park', 'zoo', 'box', 'pond', 'yard', 'hill', 'nest', 'home', 'barn'],
+  color: ['red', 'blue', 'tan', 'green', 'brown', 'black', 'white', 'pink', 'gray', 'gold'],
+  thing: ['bus', 'car', 'toy', 'hat', 'ball', 'book', 'cup', 'pen', 'sock', 'coat'],
+  size: ['big', 'small', 'tall', 'short', 'long', 'tiny', 'fat', 'thin', 'wide', 'new'],
+  object: ['bag', 'box', 'cake', 'pie', 'coat', 'boot', 'game', 'kite', 'boat', 'bike'],
+  name: ['Tom', 'Sam', 'Ann', 'Ben', 'Mom', 'Dad', 'Sue', 'Jim', 'Kim', 'Max']
+};
+
+// Generate a random sentence from templates
+const generateSentence = (): string => {
+  const template = SENTENCE_TEMPLATES[Math.floor(Math.random() * SENTENCE_TEMPLATES.length)];
+  let sentence = template;
+
+  // Replace all placeholders
+  Object.keys(WORDS).forEach(key => {
+    const wordList = WORDS[key as keyof typeof WORDS];
+    const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+    sentence = sentence.replace(`{${key}}`, randomWord);
+  });
+
+  return sentence;
+};
+
+// Generate a paragraph with 3-5 sentences
+const generateParagraph = (): string => {
+  const numSentences = Math.floor(Math.random() * 3) + 3; // 3-5 sentences
+  const sentences: string[] = [];
+
+  for (let i = 0; i < numSentences; i++) {
+    sentences.push(generateSentence());
+  }
+
+  return sentences.join(' ');
+};
+
+// Shuffle array using Fisher-Yates algorithm
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
 
 function ReadingMode() {
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState(0);
@@ -36,8 +89,31 @@ function ReadingMode() {
   const [incorrect, setIncorrect] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
+  const [config, setConfig] = useState<Config>({
+    capitalLetters: true,
+    spaces: true
+  });
 
-  const currentParagraph = PARAGRAPHS[currentParagraphIndex];
+  // Generate randomized paragraphs on component mount
+  const paragraphs = useMemo(() => {
+    const generated: string[] = [];
+    for (let i = 0; i < 10; i++) {
+      generated.push(generateParagraph());
+    }
+    return shuffleArray(generated);
+  }, []);
+
+  // Get current paragraph and apply configuration
+  const currentParagraph = useMemo(() => {
+    let text = paragraphs[currentParagraphIndex];
+
+    // Apply capital letters configuration
+    if (!config.capitalLetters) {
+      text = text.toLowerCase();
+    }
+
+    return text;
+  }, [paragraphs, currentParagraphIndex, config.capitalLetters]);
 
   // Save score to history
   const saveToHistory = (score: Score) => {
@@ -65,6 +141,13 @@ function ReadingMode() {
       }
 
       const expectedChar = currentParagraph[currentCharIndex];
+
+      // If spaces are disabled, skip space characters automatically
+      if (!config.spaces && expectedChar === ' ') {
+        setCurrentCharIndex(prev => prev + 1);
+        return;
+      }
+
       const typedChar = e.key;
 
       // Check if the typed character matches (case-insensitive for letters)
@@ -73,6 +156,11 @@ function ReadingMode() {
       if (isMatch) {
         setCorrect(prev => prev + 1);
         setCurrentCharIndex(prev => prev + 1);
+
+        // Auto-skip next space if spaces are disabled
+        if (!config.spaces && currentCharIndex + 1 < currentParagraph.length && currentParagraph[currentCharIndex + 1] === ' ') {
+          setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
+        }
       } else {
         setIncorrect(prev => prev + 1);
       }
@@ -80,7 +168,7 @@ function ReadingMode() {
 
     window.addEventListener('keypress', handleKeyPress);
     return () => window.removeEventListener('keypress', handleKeyPress);
-  }, [currentCharIndex, currentParagraph, isStarted, showScore]);
+  }, [currentCharIndex, currentParagraph, isStarted, showScore, config.spaces]);
 
   // Check if paragraph is complete
   useEffect(() => {
@@ -100,14 +188,14 @@ function ReadingMode() {
   };
 
   const handleContinue = () => {
-    // Move to next paragraph
-    const nextIndex = (currentParagraphIndex + 1) % PARAGRAPHS.length;
+    // Move to next paragraph and start immediately
+    const nextIndex = (currentParagraphIndex + 1) % paragraphs.length;
     setCurrentParagraphIndex(nextIndex);
     setCurrentCharIndex(0);
     setCorrect(0);
     setIncorrect(0);
     setShowScore(false);
-    setIsStarted(false);
+    // Keep isStarted = true so it goes directly to typing
   };
 
   const handleExit = () => {
@@ -160,6 +248,27 @@ function ReadingMode() {
             <br />
             Try to type each letter correctly!
           </p>
+
+          <div className="config-options">
+            <label className="config-option">
+              <input
+                type="checkbox"
+                checked={config.capitalLetters}
+                onChange={(e) => setConfig({ ...config, capitalLetters: e.target.checked })}
+              />
+              <span>Capital Letters</span>
+            </label>
+
+            <label className="config-option">
+              <input
+                type="checkbox"
+                checked={config.spaces}
+                onChange={(e) => setConfig({ ...config, spaces: e.target.checked })}
+              />
+              <span>Spaces</span>
+            </label>
+          </div>
+
           <button className="start-button" onClick={handleStart}>
             Start
           </button>
@@ -168,29 +277,60 @@ function ReadingMode() {
     );
   }
 
-  // Render typing game
+  // Render typing game - group characters by words for proper wrapping
+  const renderParagraph = () => {
+    const words = currentParagraph.split(' ');
+    let charIndex = 0;
+
+    return words.map((word, wordIdx) => {
+      const wordChars = word.split('').map((char) => {
+        const globalIndex = charIndex++;
+        return (
+          <span
+            key={globalIndex}
+            className={`char ${
+              globalIndex === currentCharIndex ? 'current' :
+              globalIndex < currentCharIndex ? 'completed' : ''
+            }`}
+          >
+            {char}
+          </span>
+        );
+      });
+
+      // Add space after word (except last word)
+      if (wordIdx < words.length - 1) {
+        const spaceIndex = charIndex++;
+        const shouldSkipSpace = !config.spaces;
+
+        return (
+          <span key={`word-${wordIdx}`} className="word-group">
+            {wordChars}
+            <span
+              className={`char space ${
+                spaceIndex === currentCharIndex ? 'current' :
+                spaceIndex < currentCharIndex ? 'completed' : ''
+              } ${shouldSkipSpace ? 'hidden' : ''}`}
+            >
+              {'\u00A0'}
+            </span>
+          </span>
+        );
+      }
+
+      return (
+        <span key={`word-${wordIdx}`} className="word-group">
+          {wordChars}
+        </span>
+      );
+    });
+  };
+
   return (
     <div className="reading-mode">
-      <div className="progress-bar">
-        <div
-          className="progress-fill"
-          style={{ width: `${(currentCharIndex / currentParagraph.length) * 100}%` }}
-        />
-      </div>
-
       <div className="typing-container">
         <div className="paragraph">
-          {currentParagraph.split('').map((char, index) => (
-            <span
-              key={index}
-              className={`char ${
-                index === currentCharIndex ? 'current' :
-                index < currentCharIndex ? 'completed' : ''
-              }`}
-            >
-              {char === ' ' ? '\u00A0' : char}
-            </span>
-          ))}
+          {renderParagraph()}
         </div>
       </div>
 
@@ -201,6 +341,13 @@ function ReadingMode() {
         <span className="live-score-item">
           <span className="score-icon-small">👎</span> {incorrect}
         </span>
+      </div>
+
+      <div className="progress-bar">
+        <div
+          className="progress-fill"
+          style={{ width: `${(currentCharIndex / currentParagraph.length) * 100}%` }}
+        />
       </div>
     </div>
   );

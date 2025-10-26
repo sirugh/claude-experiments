@@ -50,10 +50,43 @@
   transform: scale(0.98);
 }
 
-/* Progress Bar */
+/* Configuration Options */
+.config-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  margin: 2em 0;
+  align-items: center;
+}
+
+.config-option {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  font-size: 1.3em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.config-option input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--primary-color, #646cff);
+}
+
+.config-option span {
+  font-weight: 500;
+}
+
+.config-option:hover {
+  opacity: 0.8;
+}
+
+/* Progress Bar - positioned at bottom */
 .progress-bar {
   position: fixed;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 8px;
@@ -87,11 +120,21 @@
   font-family: 'Courier New', Courier, monospace;
 }
 
+/* Word grouping to prevent mid-word breaks */
+.word-group {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .char {
   display: inline-block;
   transition: all 0.2s ease;
   padding: 2px;
   border-radius: 4px;
+}
+
+.char.hidden {
+  display: none;
 }
 
 .char.current {
@@ -119,7 +162,7 @@
 /* Live Score */
 .live-score {
   position: fixed;
-  bottom: 2em;
+  bottom: 2.5em;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -129,6 +172,7 @@
   background-color: rgba(0, 0, 0, 0.3);
   border-radius: 50px;
   backdrop-filter: blur(10px);
+  z-index: 101;
 }
 
 .live-score-item {
@@ -285,6 +329,20 @@
     margin-bottom: 1.5em;
   }
 
+  .config-options {
+    gap: 0.8em;
+    margin: 1.5em 0;
+  }
+
+  .config-option {
+    font-size: 1.1em;
+  }
+
+  .config-option input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+
   .start-button,
   .continue-button,
   .exit-button {
@@ -308,7 +366,7 @@
 
   .live-score {
     font-size: 1.1em;
-    bottom: 1em;
+    bottom: 1.5em;
     padding: 0.6em 1em;
     gap: 1.5em;
   }
