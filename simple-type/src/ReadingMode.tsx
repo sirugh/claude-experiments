@@ -30,6 +30,7 @@ function ReadingMode() {
   const [incorrect, setIncorrect] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
+  const [errorShake, setErrorShake] = useState(false);
   const [config, setConfig] = useState<Config>(() => {
     const savedConfig = localStorage.getItem(CONFIG_KEY);
     if (savedConfig) {
@@ -151,6 +152,10 @@ function ReadingMode() {
         setCurrentCharIndex(finalIndex);
       } else {
         setIncorrect(prev => prev + 1);
+
+        // Trigger error animation
+        setErrorShake(true);
+        setTimeout(() => setErrorShake(false), 400);
       }
     };
 
@@ -204,6 +209,10 @@ function ReadingMode() {
       setCurrentCharIndex(finalIndex);
     } else {
       setIncorrect(prev => prev + 1);
+
+      // Trigger error animation
+      setErrorShake(true);
+      setTimeout(() => setErrorShake(false), 400);
     }
 
     // Clear input to allow continuous typing
@@ -328,13 +337,14 @@ function ReadingMode() {
     return words.map((word, wordIdx) => {
       const wordChars = word.split('').map((char) => {
         const globalIndex = charIndex++;
+        const isCurrent = globalIndex === currentCharIndex;
         return (
           <span
             key={globalIndex}
             className={`char ${
-              globalIndex === currentCharIndex ? 'current' :
+              isCurrent ? 'current' :
               globalIndex < currentCharIndex ? 'completed' : ''
-            }`}
+            } ${isCurrent && errorShake ? 'error' : ''}`}
           >
             {char}
           </span>
@@ -344,15 +354,16 @@ function ReadingMode() {
       // Add space after word (except last word)
       if (wordIdx < words.length - 1) {
         const spaceIndex = charIndex++;
+        const isCurrent = spaceIndex === currentCharIndex;
 
         return (
           <span key={`word-${wordIdx}`} className="word-group">
             {wordChars}
             <span
               className={`char space ${
-                spaceIndex === currentCharIndex ? 'current' :
+                isCurrent ? 'current' :
                 spaceIndex < currentCharIndex ? 'completed' : ''
-              }`}
+              } ${isCurrent && errorShake ? 'error' : ''}`}
             >
               {'\u00A0'}
             </span>
@@ -395,6 +406,13 @@ function ReadingMode() {
         </div>
       </div>
 
+      <div className="progress-bar">
+        <div
+          className="progress-fill"
+          style={{ width: `${(currentCharIndex / currentParagraph.length) * 100}%` }}
+        />
+      </div>
+
       <div className="live-score">
         <span className="live-score-item">
           <span className="score-icon-small">👍</span> {correct}
@@ -402,13 +420,6 @@ function ReadingMode() {
         <span className="live-score-item">
           <span className="score-icon-small">👎</span> {incorrect}
         </span>
-      </div>
-
-      <div className="progress-bar">
-        <div
-          className="progress-fill"
-          style={{ width: `${(currentCharIndex / currentParagraph.length) * 100}%` }}
-        />
       </div>
     </div>
   );
