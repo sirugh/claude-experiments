@@ -5,32 +5,27 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.3s ease;
-}
-
-.math-mode.correct {
-  animation: flash-green 0.8s ease;
-}
-
-.math-mode.wrong {
-  animation: flash-red 0.8s ease;
 }
 
 @keyframes flash-green {
   0%, 100% {
     background-color: transparent;
+    border-color: #646cff;
   }
   50% {
-    background-color: rgba(0, 255, 0, 0.3);
+    background-color: rgba(0, 255, 0, 0.2);
+    border-color: rgb(0, 200, 0);
   }
 }
 
 @keyframes flash-red {
   0%, 100% {
     background-color: transparent;
+    border-color: #646cff;
   }
   50% {
-    background-color: rgba(255, 0, 0, 0.3);
+    background-color: rgba(255, 0, 0, 0.2);
+    border-color: rgb(200, 0, 0);
   }
 }
 
@@ -73,6 +68,15 @@
   padding: 2em;
   height: 25vh;
   min-height: 200px;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.problem-container.correct {
+  animation: flash-green 0.8s ease;
+}
+
+.problem-container.wrong {
+  animation: flash-red 0.8s ease;
 }
 
 .problem {
