@@ -19,6 +19,7 @@ interface Config {
 }
 
 const HISTORY_KEY = 'app:simple-type:history';
+const CONFIG_KEY = 'app:simple-type:reading-config';
 
 // Base templates for generating sentences
 const SENTENCE_TEMPLATES = [
@@ -89,9 +90,22 @@ function ReadingMode() {
   const [incorrect, setIncorrect] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
-  const [config, setConfig] = useState<Config>({
-    capitalLetters: false,
-    spaces: false
+  const [config, setConfig] = useState<Config>(() => {
+    const savedConfig = localStorage.getItem(CONFIG_KEY);
+    if (savedConfig) {
+      try {
+        return JSON.parse(savedConfig);
+      } catch {
+        return {
+          capitalLetters: false,
+          spaces: false
+        };
+      }
+    }
+    return {
+      capitalLetters: false,
+      spaces: false
+    };
   });
 
   // Generate randomized paragraphs on component mount
@@ -102,6 +116,11 @@ function ReadingMode() {
     }
     return shuffleArray(generated);
   }, []);
+
+  // Persist config changes to localStorage
+  useEffect(() => {
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+  }, [config]);
 
   // Get current paragraph (always display with original capitalization)
   const currentParagraph = useMemo(() => {
