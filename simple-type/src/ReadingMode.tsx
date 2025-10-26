@@ -90,8 +90,8 @@ function ReadingMode() {
   const [showScore, setShowScore] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [config, setConfig] = useState<Config>({
-    capitalLetters: true,
-    spaces: true
+    capitalLetters: false,
+    spaces: false
   });
 
   // Generate randomized paragraphs on component mount
@@ -103,17 +103,10 @@ function ReadingMode() {
     return shuffleArray(generated);
   }, []);
 
-  // Get current paragraph and apply configuration
+  // Get current paragraph (always display with original capitalization)
   const currentParagraph = useMemo(() => {
-    let text = paragraphs[currentParagraphIndex];
-
-    // Apply capital letters configuration
-    if (!config.capitalLetters) {
-      text = text.toLowerCase();
-    }
-
-    return text;
-  }, [paragraphs, currentParagraphIndex, config.capitalLetters]);
+    return paragraphs[currentParagraphIndex];
+  }, [paragraphs, currentParagraphIndex]);
 
   // Save score to history
   const saveToHistory = (score: Score) => {
@@ -150,8 +143,11 @@ function ReadingMode() {
 
       const typedChar = e.key;
 
-      // Check if the typed character matches (case-insensitive for letters)
-      const isMatch = expectedChar.toLowerCase() === typedChar.toLowerCase();
+      // Check if the typed character matches
+      // Case-sensitive if capitalLetters enabled, case-insensitive if disabled
+      const isMatch = config.capitalLetters
+        ? expectedChar === typedChar
+        : expectedChar.toLowerCase() === typedChar.toLowerCase();
 
       if (isMatch) {
         setCorrect(prev => prev + 1);
@@ -168,7 +164,7 @@ function ReadingMode() {
 
     window.addEventListener('keypress', handleKeyPress);
     return () => window.removeEventListener('keypress', handleKeyPress);
-  }, [currentCharIndex, currentParagraph, isStarted, showScore, config.spaces]);
+  }, [currentCharIndex, currentParagraph, isStarted, showScore, config.spaces, config.capitalLetters]);
 
   // Check if paragraph is complete
   useEffect(() => {
@@ -301,7 +297,6 @@ function ReadingMode() {
       // Add space after word (except last word)
       if (wordIdx < words.length - 1) {
         const spaceIndex = charIndex++;
-        const shouldSkipSpace = !config.spaces;
 
         return (
           <span key={`word-${wordIdx}`} className="word-group">
@@ -310,7 +305,7 @@ function ReadingMode() {
               className={`char space ${
                 spaceIndex === currentCharIndex ? 'current' :
                 spaceIndex < currentCharIndex ? 'completed' : ''
-              } ${shouldSkipSpace ? 'hidden' : ''}`}
+              }`}
             >
               {'\u00A0'}
             </span>
