@@ -17,6 +17,7 @@ interface HistoryEntry {
 interface Config {
   capitalLetters: boolean;
   spaces: boolean;
+  punctuation: boolean;
 }
 
 const HISTORY_KEY = 'app:simple-type:history';
@@ -33,22 +34,35 @@ function ReadingMode() {
     const savedConfig = localStorage.getItem(CONFIG_KEY);
     if (savedConfig) {
       try {
-        return JSON.parse(savedConfig);
+        const parsed = JSON.parse(savedConfig);
+        // Ensure punctuation field exists (for backward compatibility)
+        return {
+          capitalLetters: parsed.capitalLetters ?? false,
+          spaces: parsed.spaces ?? false,
+          punctuation: parsed.punctuation ?? false
+        };
       } catch {
         return {
           capitalLetters: false,
-          spaces: false
+          spaces: false,
+          punctuation: false
         };
       }
     }
     return {
       capitalLetters: false,
-      spaces: false
+      spaces: false,
+      punctuation: false
     };
   });
 
   // Ref for hidden input to trigger mobile keyboard
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper function to check if a character is punctuation
+  const isPunctuation = (char: string): boolean => {
+    return /[.,!?;:'"\-()[\]{}]/.test(char);
+  };
 
   // Use shuffled pre-written paragraphs
   const paragraphs = useMemo(() => {
@@ -97,10 +111,16 @@ function ReadingMode() {
         e.preventDefault();
       }
 
-      const expectedChar = currentParagraph[currentCharIndex];
+      let expectedChar = currentParagraph[currentCharIndex];
 
       // If spaces are disabled, skip space characters automatically
       if (!config.spaces && expectedChar === ' ') {
+        setCurrentCharIndex(prev => prev + 1);
+        return;
+      }
+
+      // If punctuation is disabled, skip punctuation characters automatically
+      if (!config.punctuation && isPunctuation(expectedChar)) {
         setCurrentCharIndex(prev => prev + 1);
         return;
       }
@@ -117,10 +137,16 @@ function ReadingMode() {
         setCorrect(prev => prev + 1);
         setCurrentCharIndex(prev => prev + 1);
 
-        // Auto-skip next space if spaces are disabled
-        if (!config.spaces && currentCharIndex + 1 < currentParagraph.length && currentParagraph[currentCharIndex + 1] === ' ') {
-          setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
-        }
+        // Auto-skip next character if it's disabled
+        const skipNext = (index: number) => {
+          if (index < currentParagraph.length) {
+            const nextChar = currentParagraph[index];
+            if ((!config.spaces && nextChar === ' ') || (!config.punctuation && isPunctuation(nextChar))) {
+              setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
+            }
+          }
+        };
+        skipNext(currentCharIndex + 1);
       } else {
         setIncorrect(prev => prev + 1);
       }
@@ -128,7 +154,7 @@ function ReadingMode() {
 
     window.addEventListener('keypress', handleKeyPress);
     return () => window.removeEventListener('keypress', handleKeyPress);
-  }, [currentCharIndex, currentParagraph, isStarted, showScore, config.spaces, config.capitalLetters]);
+  }, [currentCharIndex, currentParagraph, isStarted, showScore, config.spaces, config.capitalLetters, config.punctuation]);
 
   // Check if paragraph is complete
   useEffect(() => {
@@ -152,10 +178,17 @@ function ReadingMode() {
 
     // Get the last character typed
     const typedChar = value[value.length - 1];
-    const expectedChar = currentParagraph[currentCharIndex];
+    let expectedChar = currentParagraph[currentCharIndex];
 
     // If spaces are disabled, skip space characters automatically
     if (!config.spaces && expectedChar === ' ') {
+      setCurrentCharIndex(prev => prev + 1);
+      e.target.value = ''; // Clear input
+      return;
+    }
+
+    // If punctuation is disabled, skip punctuation characters automatically
+    if (!config.punctuation && isPunctuation(expectedChar)) {
       setCurrentCharIndex(prev => prev + 1);
       e.target.value = ''; // Clear input
       return;
@@ -170,10 +203,16 @@ function ReadingMode() {
       setCorrect(prev => prev + 1);
       setCurrentCharIndex(prev => prev + 1);
 
-      // Auto-skip next space if spaces are disabled
-      if (!config.spaces && currentCharIndex + 1 < currentParagraph.length && currentParagraph[currentCharIndex + 1] === ' ') {
-        setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
-      }
+      // Auto-skip next character if it's disabled
+      const skipNext = (index: number) => {
+        if (index < currentParagraph.length) {
+          const nextChar = currentParagraph[index];
+          if ((!config.spaces && nextChar === ' ') || (!config.punctuation && isPunctuation(nextChar))) {
+            setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
+          }
+        }
+      };
+      skipNext(currentCharIndex + 1);
     } else {
       setIncorrect(prev => prev + 1);
     }
@@ -272,6 +311,15 @@ function ReadingMode() {
                 onChange={(e) => setConfig({ ...config, spaces: e.target.checked })}
               />
               <span>Spaces</span>
+            </label>
+
+            <label className="config-option">
+              <input
+                type="checkbox"
+                checked={config.punctuation}
+                onChange={(e) => setConfig({ ...config, punctuation: e.target.checked })}
+              />
+              <span>Punctuation</span>
             </label>
           </div>
 
