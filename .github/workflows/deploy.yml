@@ -77,8 +77,13 @@ jobs:
             cp -r /tmp/_pr_backup gh-pages/_pr
           fi
 
-          # Commit and push
+          # Ensure .nojekyll exists to disable Jekyll processing
           cd gh-pages
+          if [ ! -f .nojekyll ]; then
+            touch .nojekyll
+          fi
+
+          # Commit and push
           git add .
           git commit -m "Deploy production from ${{ github.sha }}" || echo "No changes to commit"
           git push origin gh-pages
