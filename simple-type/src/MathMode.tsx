@@ -192,14 +192,14 @@ function MathMode() {
   if (!problem) return <div>Loading...</div>;
 
   return (
-    <div className={`math-mode ${feedback || ''}`}>
+    <div className="math-mode">
       <button className="reset-button" onClick={handleReset}>
         Reset
       </button>
 
       <div className="score-display">Score: {score}</div>
 
-      <div className="problem-container">
+      <div className={`problem-container ${feedback || ''}`}>
         <form onSubmit={handleSubmit}>
           <div className="problem">
             <span className="number">{problem.num1}</span>
