@@ -7,19 +7,18 @@ on:
     paths:
       - 'simple-type/**'
       - '.github/workflows/deploy.yml'
+      - 'index.html'
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,9 +31,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: simple-type/package-lock.json
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
       - name: Install dependencies
         run: npm ci
         working-directory: ./simple-type
@@ -43,21 +39,44 @@ jobs:
         run: npm run build
         working-directory: ./simple-type
 
-      - name: Prepare deployment structure
+      - name: Clone gh-pages branch
         run: |
-          mkdir -p _site/simple-type
-          cp -r simple-type/dist/* _site/simple-type/
-          cp index.html _site/
+          git clone --branch gh-pages --single-branch https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git gh-pages || {
+            echo "gh-pages doesn't exist, creating..."
+            mkdir gh-pages
+            cd gh-pages
+            git init
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git checkout -b gh-pages
+          }
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./_site
+      - name: Deploy production to gh-pages
+        run: |
+          # Preserve _pr directories (PR previews)
+          if [ -d "gh-pages/_pr" ]; then
+            cp -r gh-pages/_pr /tmp/_pr_backup
+          fi
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          # Clear production files but keep _pr
+          cd gh-pages
+          find . -maxdepth 1 ! -name '_pr' ! -name '.git' ! -name '.' -exec rm -rf {} +
+          find . -mindepth 2 -maxdepth 2 ! -path './_pr/*' ! -path './.git/*' -exec rm -rf {} +
+
+          # Copy new production files
+          cd ..
+          mkdir -p gh-pages/simple-type
+          cp -r simple-type/dist/* gh-pages/simple-type/
+          cp index.html gh-pages/
+
+          # Restore _pr directories
+          if [ -d "/tmp/_pr_backup" ]; then
+            cp -r /tmp/_pr_backup gh-pages/_pr
+          fi
+
+          # Configure git and push
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Deploy production from ${{ github.sha }}" || echo "No changes to commit"
+          git push origin gh-pages
