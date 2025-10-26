@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import './ReadingMode.css';
 import { READING_PARAGRAPHS, shuffleArray } from './readingParagraphs';
 
@@ -17,6 +17,7 @@ interface HistoryEntry {
 interface Config {
   capitalLetters: boolean;
   spaces: boolean;
+  punctuation: boolean;
 }
 
 const HISTORY_KEY = 'app:simple-type:history';
@@ -29,23 +30,54 @@ function ReadingMode() {
   const [incorrect, setIncorrect] = useState(0);
   const [showScore, setShowScore] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
+  const [errorShake, setErrorShake] = useState(false);
   const [config, setConfig] = useState<Config>(() => {
     const savedConfig = localStorage.getItem(CONFIG_KEY);
     if (savedConfig) {
       try {
-        return JSON.parse(savedConfig);
+        const parsed = JSON.parse(savedConfig);
+        // Ensure punctuation field exists (for backward compatibility)
+        return {
+          capitalLetters: parsed.capitalLetters ?? false,
+          spaces: parsed.spaces ?? false,
+          punctuation: parsed.punctuation ?? false
+        };
       } catch {
         return {
           capitalLetters: false,
-          spaces: false
+          spaces: false,
+          punctuation: false
         };
       }
     }
     return {
       capitalLetters: false,
-      spaces: false
+      spaces: false,
+      punctuation: false
     };
   });
+
+  // Ref for hidden input to trigger mobile keyboard
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper function to check if a character is punctuation
+  const isPunctuation = (char: string): boolean => {
+    return /[.,!?;:'"\-()[\]{}]/.test(char);
+  };
+
+  // Helper function to check if a character should be skipped
+  const shouldSkip = (char: string): boolean => {
+    return (!config.spaces && char === ' ') || (!config.punctuation && isPunctuation(char));
+  };
+
+  // Helper function to skip consecutive disabled characters
+  const skipDisabledChars = (startIndex: number): number => {
+    let index = startIndex;
+    while (index < currentParagraph.length && shouldSkip(currentParagraph[index])) {
+      index++;
+    }
+    return index;
+  };
 
   // Use shuffled pre-written paragraphs
   const paragraphs = useMemo(() => {
@@ -56,6 +88,13 @@ function ReadingMode() {
   useEffect(() => {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
   }, [config]);
+
+  // Auto-focus hidden input when game starts (for mobile keyboard)
+  useEffect(() => {
+    if (isStarted && !showScore && hiddenInputRef.current) {
+      hiddenInputRef.current.focus();
+    }
+  }, [isStarted, showScore]);
 
   // Get current paragraph (always display with original capitalization)
   const currentParagraph = useMemo(() => {
@@ -87,11 +126,12 @@ function ReadingMode() {
         e.preventDefault();
       }
 
-      const expectedChar = currentParagraph[currentCharIndex];
+      let expectedChar = currentParagraph[currentCharIndex];
 
-      // If spaces are disabled, skip space characters automatically
-      if (!config.spaces && expectedChar === ' ') {
-        setCurrentCharIndex(prev => prev + 1);
+      // Skip all consecutive disabled characters (spaces and/or punctuation)
+      if (shouldSkip(expectedChar)) {
+        const nextIndex = skipDisabledChars(currentCharIndex);
+        setCurrentCharIndex(nextIndex);
         return;
       }
 
@@ -105,20 +145,23 @@ function ReadingMode() {
 
       if (isMatch) {
         setCorrect(prev => prev + 1);
-        setCurrentCharIndex(prev => prev + 1);
+        const nextIndex = currentCharIndex + 1;
 
-        // Auto-skip next space if spaces are disabled
-        if (!config.spaces && currentCharIndex + 1 < currentParagraph.length && currentParagraph[currentCharIndex + 1] === ' ') {
-          setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
-        }
+        // Skip all consecutive disabled characters after this one
+        const finalIndex = skipDisabledChars(nextIndex);
+        setCurrentCharIndex(finalIndex);
       } else {
         setIncorrect(prev => prev + 1);
+
+        // Trigger error animation
+        setErrorShake(true);
+        setTimeout(() => setErrorShake(false), 400);
       }
     };
 
     window.addEventListener('keypress', handleKeyPress);
     return () => window.removeEventListener('keypress', handleKeyPress);
-  }, [currentCharIndex, currentParagraph, isStarted, showScore, config.spaces, config.capitalLetters]);
+  }, [currentCharIndex, currentParagraph, isStarted, showScore, config.spaces, config.capitalLetters, config.punctuation]);
 
   // Check if paragraph is complete
   useEffect(() => {
@@ -132,6 +175,56 @@ function ReadingMode() {
       setShowScore(true);
     }
   }, [currentCharIndex, currentParagraph.length, isStarted, correct, incorrect, currentParagraphIndex]);
+
+  // Handle input from hidden input field (for mobile)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isStarted || showScore || currentCharIndex >= currentParagraph.length) return;
+
+    const value = e.target.value;
+    if (value.length === 0) return;
+
+    // Get the last character typed
+    const typedChar = value[value.length - 1];
+    let expectedChar = currentParagraph[currentCharIndex];
+
+    // Skip all consecutive disabled characters (spaces and/or punctuation)
+    if (shouldSkip(expectedChar)) {
+      const nextIndex = skipDisabledChars(currentCharIndex);
+      setCurrentCharIndex(nextIndex);
+      e.target.value = ''; // Clear input
+      return;
+    }
+
+    // Check if the typed character matches
+    const isMatch = config.capitalLetters
+      ? expectedChar === typedChar
+      : expectedChar.toLowerCase() === typedChar.toLowerCase();
+
+    if (isMatch) {
+      setCorrect(prev => prev + 1);
+      const nextIndex = currentCharIndex + 1;
+
+      // Skip all consecutive disabled characters after this one
+      const finalIndex = skipDisabledChars(nextIndex);
+      setCurrentCharIndex(finalIndex);
+    } else {
+      setIncorrect(prev => prev + 1);
+
+      // Trigger error animation
+      setErrorShake(true);
+      setTimeout(() => setErrorShake(false), 400);
+    }
+
+    // Clear input to allow continuous typing
+    e.target.value = '';
+  };
+
+  // Handle click on typing area to refocus input (for mobile)
+  const handleTypingAreaClick = () => {
+    if (hiddenInputRef.current) {
+      hiddenInputRef.current.focus();
+    }
+  };
 
   const handleStart = () => {
     setIsStarted(true);
@@ -217,6 +310,15 @@ function ReadingMode() {
               />
               <span>Spaces</span>
             </label>
+
+            <label className="config-option">
+              <input
+                type="checkbox"
+                checked={config.punctuation}
+                onChange={(e) => setConfig({ ...config, punctuation: e.target.checked })}
+              />
+              <span>Punctuation</span>
+            </label>
           </div>
 
           <button className="start-button" onClick={handleStart}>
@@ -235,13 +337,14 @@ function ReadingMode() {
     return words.map((word, wordIdx) => {
       const wordChars = word.split('').map((char) => {
         const globalIndex = charIndex++;
+        const isCurrent = globalIndex === currentCharIndex;
         return (
           <span
             key={globalIndex}
             className={`char ${
-              globalIndex === currentCharIndex ? 'current' :
+              isCurrent ? 'current' :
               globalIndex < currentCharIndex ? 'completed' : ''
-            }`}
+            } ${isCurrent && errorShake ? 'error' : ''}`}
           >
             {char}
           </span>
@@ -251,15 +354,16 @@ function ReadingMode() {
       // Add space after word (except last word)
       if (wordIdx < words.length - 1) {
         const spaceIndex = charIndex++;
+        const isCurrent = spaceIndex === currentCharIndex;
 
         return (
           <span key={`word-${wordIdx}`} className="word-group">
             {wordChars}
             <span
               className={`char space ${
-                spaceIndex === currentCharIndex ? 'current' :
+                isCurrent ? 'current' :
                 spaceIndex < currentCharIndex ? 'completed' : ''
-              }`}
+              } ${isCurrent && errorShake ? 'error' : ''}`}
             >
               {'\u00A0'}
             </span>
@@ -277,10 +381,36 @@ function ReadingMode() {
 
   return (
     <div className="reading-mode">
-      <div className="typing-container">
+      {/* Hidden input for mobile keyboard support */}
+      <input
+        ref={hiddenInputRef}
+        type="text"
+        inputMode="text"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck="false"
+        onChange={handleInputChange}
+        style={{
+          position: 'absolute',
+          opacity: 0,
+          pointerEvents: 'none',
+          left: '-9999px'
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="typing-container" onClick={handleTypingAreaClick}>
         <div className="paragraph">
           {renderParagraph()}
         </div>
+      </div>
+
+      <div className="progress-bar">
+        <div
+          className="progress-fill"
+          style={{ width: `${(currentCharIndex / currentParagraph.length) * 100}%` }}
+        />
       </div>
 
       <div className="live-score">
@@ -290,13 +420,6 @@ function ReadingMode() {
         <span className="live-score-item">
           <span className="score-icon-small">👎</span> {incorrect}
         </span>
-      </div>
-
-      <div className="progress-bar">
-        <div
-          className="progress-fill"
-          style={{ width: `${(currentCharIndex / currentParagraph.length) * 100}%` }}
-        />
       </div>
     </div>
   );

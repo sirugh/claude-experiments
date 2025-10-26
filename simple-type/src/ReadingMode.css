@@ -6,6 +6,7 @@
   align-items: center;
   justify-content: center;
   padding: 2em;
+  padding-bottom: 8em;
   box-sizing: border-box;
 }
 
@@ -83,15 +84,15 @@
   opacity: 0.8;
 }
 
-/* Progress Bar - positioned at bottom */
+/* Progress Bar - positioned under typing container */
 .progress-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
+  max-width: 900px;
   height: 8px;
   background-color: rgba(100, 108, 255, 0.1);
-  z-index: 100;
+  border-radius: 4px;
+  margin-top: 1em;
+  overflow: hidden;
 }
 
 .progress-fill {
@@ -102,7 +103,6 @@
 
 /* Typing Container */
 .typing-container {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,6 +145,11 @@
   animation: pulse 1s infinite;
 }
 
+.char.current.error {
+  background-color: #f59e0b;
+  animation: shake 0.4s ease-in-out, errorPulse 0.4s ease-in-out;
+}
+
 .char.completed {
   opacity: 0.5;
   color: #4ade80;
@@ -156,6 +161,30 @@
   }
   50% {
     opacity: 0.7;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: scale(1.2) translateX(0);
+  }
+  25% {
+    transform: scale(1.2) translateX(-4px);
+  }
+  75% {
+    transform: scale(1.2) translateX(4px);
+  }
+}
+
+@keyframes errorPulse {
+  0% {
+    background-color: #f59e0b;
+  }
+  50% {
+    background-color: #fb923c;
+  }
+  100% {
+    background-color: #f59e0b;
   }
 }
 
