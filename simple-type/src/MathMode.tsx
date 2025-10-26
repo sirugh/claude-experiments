@@ -437,7 +437,7 @@ function MathMode() {
           <div className={`tiles-container ${feedback || ''}`}>
             {tileOptions.map((option) => (
               <button
-                key={option}
+                key={`${problem.num1}-${problem.num2}-${problem.operation}-${option}`}
                 className={`tile ${
                   selectedTile === option
                     ? option === problem.answer
