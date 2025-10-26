@@ -25,7 +25,18 @@ An educational web application designed for first graders, featuring adaptive le
 
 ### Reading Mode
 
-Coming soon! Will feature reading exercises and comprehension activities.
+- **Typing practice** with age-appropriate paragraphs
+- **Character-by-character highlighting** to guide typing progression
+- **Real-time feedback**:
+  - Correct characters move the highlight forward
+  - Incorrect attempts are tracked but don't block progress
+- **Progress tracking** with visual progress bar
+- **Score display** showing:
+  - 👍 Thumbs up: Number of correctly typed characters
+  - 👎 Thumbs down: Number of incorrect attempts
+- **Historical score storage**: All reading sessions are saved to local storage for future progress tracking
+- **Continue or Exit options** after completing each paragraph
+- **10 different paragraphs** with simple, first-grade vocabulary
 
 ## Getting Started
 
@@ -61,6 +72,15 @@ The app starts in Math mode by default. Click the mode toggle in the top-left co
 3. Watch your score increase with correct answers
 4. Problems automatically adjust to your skill level
 
+### Reading Mode Controls
+
+1. Click "Start" to begin a reading exercise
+2. Type each character as it's highlighted
+3. The highlight moves forward only when you type the correct character
+4. Wrong attempts are counted but don't prevent progress
+5. Complete the paragraph to see your score
+6. Choose "Continue" for the next paragraph or "Exit" to return to the start screen
+
 ## Design Philosophy
 
 The application is designed specifically for first graders with:
@@ -69,6 +89,35 @@ The application is designed specifically for first graders with:
 - Positive reinforcement (score only goes up)
 - Adaptive difficulty to maintain engagement
 - Visual feedback for immediate learning
+
+## Data Storage
+
+The app uses browser localStorage to persist data:
+
+### Math Mode Storage
+- **Key**: `app:simple-type:score`
+- **Format**: String representation of score number
+- **Example**: `"42"`
+
+### Reading Mode Historical Storage
+- **Key**: `app:simple-type:history`
+- **Format**: JSON array of historical entries
+- **Structure**:
+  ```json
+  [
+    {
+      "date": "2025-10-26",
+      "score": {
+        "correct": 58,
+        "incorrect": 5,
+        "paragraphId": 0
+      },
+      "timestamp": 1729900000000
+    }
+  ]
+  ```
+
+This storage design allows for future implementation of a score/profile page to display historical progress and statistics.
 
 ## Development
 
