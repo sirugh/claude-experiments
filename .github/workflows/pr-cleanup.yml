@@ -18,13 +18,13 @@ jobs:
 
       - name: Remove PR preview directory
         run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           # Remove the PR preview directory
           if [ -d "_pr/${{ github.event.pull_request.number }}" ]; then
             rm -rf _pr/${{ github.event.pull_request.number }}
-
-            # Configure git
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
 
             # Commit and push
             git add _pr/${{ github.event.pull_request.number }}

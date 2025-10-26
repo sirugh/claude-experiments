@@ -37,6 +37,10 @@ jobs:
 
       - name: Checkout or create gh-pages branch
         run: |
+          # Configure git identity first
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
           # Try to checkout gh-pages, create if it doesn't exist
           git fetch origin gh-pages:gh-pages 2>/dev/null || {
             echo "gh-pages branch doesn't exist, creating it..."
@@ -60,12 +64,8 @@ jobs:
           # Copy built files
           cp -r simple-type/dist/* gh-pages/_pr/${{ github.event.pull_request.number }}/simple-type/
 
-          # Configure git
-          cd gh-pages
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
           # Commit and push
+          cd gh-pages
           git add _pr/${{ github.event.pull_request.number }}
           git commit -m "Deploy PR #${{ github.event.pull_request.number }} preview" || echo "No changes to commit"
           git push origin gh-pages
