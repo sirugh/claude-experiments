@@ -46,10 +46,10 @@ jobs:
             echo "gh-pages branch doesn't exist, creating it..."
             git checkout --orphan gh-pages
             git rm -rf .
-            # Copy current production content
-            mkdir -p simple-type
-            # We'll initialize with production content later
-            git commit --allow-empty -m "Initialize gh-pages branch"
+            # Add root index.html to enable GitHub Pages
+            echo '<!DOCTYPE html><html><head><title>Claude Experiments</title></head><body><h1>Claude Experiments</h1><p>PR previews are available at /_pr/&lt;number&gt;/</p></body></html>' > index.html
+            git add index.html
+            git commit -m "Initialize gh-pages branch"
             git push origin gh-pages
           }
 
