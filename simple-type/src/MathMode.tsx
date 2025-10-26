@@ -16,8 +16,13 @@ interface DifficultyConfig {
   operations: Operation[];
 }
 
+const SCORE_KEY = 'app:simple-type:score';
+
 function MathMode() {
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(() => {
+    const savedScore = localStorage.getItem(SCORE_KEY);
+    return savedScore ? parseInt(savedScore, 10) : 0;
+  });
   const [problem, setProblem] = useState<Problem | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
@@ -142,6 +147,11 @@ function MathMode() {
     }
   }, [problem]);
 
+  useEffect(() => {
+    // Save score to localStorage whenever it changes
+    localStorage.setItem(SCORE_KEY, score.toString());
+  }, [score]);
+
   const getOperationSymbol = (operation: Operation): string => {
     switch (operation) {
       case 'addition': return '+';
@@ -173,11 +183,21 @@ function MathMode() {
     }, 800);
   };
 
+  const handleReset = () => {
+    setScore(0);
+    setPerformanceHistory([]);
+    localStorage.setItem(SCORE_KEY, '0');
+  };
+
   if (!problem) return <div>Loading...</div>;
 
   return (
     <div className={`math-mode ${feedback || ''}`}>
-      <div className="score">Score: {score}</div>
+      <button className="reset-button" onClick={handleReset}>
+        Reset
+      </button>
+
+      <div className="score-display">Score: {score}</div>
 
       <div className="problem-container">
         <form onSubmit={handleSubmit}>
