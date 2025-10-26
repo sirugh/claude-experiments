@@ -64,8 +64,14 @@ jobs:
           # Copy built files
           cp -r simple-type/dist/* gh-pages/_pr/${{ github.event.pull_request.number }}/simple-type/
 
-          # Commit and push
+          # Ensure .nojekyll exists to disable Jekyll processing
           cd gh-pages
+          if [ ! -f .nojekyll ]; then
+            touch .nojekyll
+            git add .nojekyll
+          fi
+
+          # Commit and push
           git add _pr/${{ github.event.pull_request.number }}
           git commit -m "Deploy PR #${{ github.event.pull_request.number }} preview" || echo "No changes to commit"
           git push origin gh-pages
