@@ -182,6 +182,13 @@ function ReadingMode() {
     e.target.value = '';
   };
 
+  // Handle click on typing area to refocus input (for mobile)
+  const handleTypingAreaClick = () => {
+    if (hiddenInputRef.current) {
+      hiddenInputRef.current.focus();
+    }
+  };
+
   const handleStart = () => {
     setIsStarted(true);
   };
@@ -345,7 +352,7 @@ function ReadingMode() {
         aria-hidden="true"
       />
 
-      <div className="typing-container">
+      <div className="typing-container" onClick={handleTypingAreaClick}>
         <div className="paragraph">
           {renderParagraph()}
         </div>
