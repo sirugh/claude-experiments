@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import './ReadingMode.css';
 import { READING_PARAGRAPHS, shuffleArray } from './readingParagraphs';
 
@@ -47,6 +47,9 @@ function ReadingMode() {
     };
   });
 
+  // Ref for hidden input to trigger mobile keyboard
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
+
   // Use shuffled pre-written paragraphs
   const paragraphs = useMemo(() => {
     return shuffleArray(READING_PARAGRAPHS);
@@ -56,6 +59,13 @@ function ReadingMode() {
   useEffect(() => {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
   }, [config]);
+
+  // Auto-focus hidden input when game starts (for mobile keyboard)
+  useEffect(() => {
+    if (isStarted && !showScore && hiddenInputRef.current) {
+      hiddenInputRef.current.focus();
+    }
+  }, [isStarted, showScore]);
 
   // Get current paragraph (always display with original capitalization)
   const currentParagraph = useMemo(() => {
@@ -132,6 +142,45 @@ function ReadingMode() {
       setShowScore(true);
     }
   }, [currentCharIndex, currentParagraph.length, isStarted, correct, incorrect, currentParagraphIndex]);
+
+  // Handle input from hidden input field (for mobile)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isStarted || showScore || currentCharIndex >= currentParagraph.length) return;
+
+    const value = e.target.value;
+    if (value.length === 0) return;
+
+    // Get the last character typed
+    const typedChar = value[value.length - 1];
+    const expectedChar = currentParagraph[currentCharIndex];
+
+    // If spaces are disabled, skip space characters automatically
+    if (!config.spaces && expectedChar === ' ') {
+      setCurrentCharIndex(prev => prev + 1);
+      e.target.value = ''; // Clear input
+      return;
+    }
+
+    // Check if the typed character matches
+    const isMatch = config.capitalLetters
+      ? expectedChar === typedChar
+      : expectedChar.toLowerCase() === typedChar.toLowerCase();
+
+    if (isMatch) {
+      setCorrect(prev => prev + 1);
+      setCurrentCharIndex(prev => prev + 1);
+
+      // Auto-skip next space if spaces are disabled
+      if (!config.spaces && currentCharIndex + 1 < currentParagraph.length && currentParagraph[currentCharIndex + 1] === ' ') {
+        setTimeout(() => setCurrentCharIndex(prev => prev + 1), 0);
+      }
+    } else {
+      setIncorrect(prev => prev + 1);
+    }
+
+    // Clear input to allow continuous typing
+    e.target.value = '';
+  };
 
   const handleStart = () => {
     setIsStarted(true);
@@ -277,6 +326,25 @@ function ReadingMode() {
 
   return (
     <div className="reading-mode">
+      {/* Hidden input for mobile keyboard support */}
+      <input
+        ref={hiddenInputRef}
+        type="text"
+        inputMode="text"
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck="false"
+        onChange={handleInputChange}
+        style={{
+          position: 'absolute',
+          opacity: 0,
+          pointerEvents: 'none',
+          left: '-9999px'
+        }}
+        aria-hidden="true"
+      />
+
       <div className="typing-container">
         <div className="paragraph">
           {renderParagraph()}
