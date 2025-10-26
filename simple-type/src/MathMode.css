@@ -81,39 +81,41 @@
 
 .problem {
   display: flex;
-  align-items: center;
-  gap: 1.5em;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3em;
   font-size: 4em;
   font-weight: bold;
+}
+
+.problem-line {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  min-width: 3em;
+  justify-content: flex-end;
+}
+
+.problem-line.separator {
+  border-top: 4px solid currentColor;
+  width: 100%;
+  min-height: 0;
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
 }
 
 .answer-input {
   width: 2.5em;
   font-size: 1em;
-  text-align: center;
+  text-align: right;
   border: none;
-  border-bottom: 4px solid #646cff;
   background: transparent;
   color: inherit;
   font-family: inherit;
   font-weight: bold;
   outline: none;
   padding: 0.2em;
-  animation: blink-border 1s step-end infinite;
-  caret-color: transparent;
-}
-
-@keyframes blink-border {
-  0%, 100% {
-    border-bottom-color: #646cff;
-  }
-  50% {
-    border-bottom-color: transparent;
-  }
-}
-
-.answer-input:focus {
-  animation: blink-border 1s step-end infinite;
+  caret-color: #646cff;
 }
 
 /* Remove number input spinners */
@@ -136,6 +138,10 @@
     font-size: 2.5em;
   }
 
+  .problem-line {
+    min-width: 2.5em;
+  }
+
   .score-display {
     font-size: 2em;
     margin-bottom: 1.5em;
@@ -156,7 +162,12 @@
 @media (max-width: 480px) {
   .problem {
     font-size: 2em;
-    gap: 1em;
+    gap: 0.2em;
+  }
+
+  .problem-line {
+    min-width: 2em;
+    gap: 0.2em;
   }
 
   .score-display {
