@@ -43,10 +43,15 @@ jobs:
         run: npm run build
         working-directory: ./simple-type
 
+      - name: Prepare deployment structure
+        run: |
+          mkdir -p _site/simple-type
+          cp -r simple-type/dist/* _site/simple-type/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./simple-type/dist
+          path: ./_site
 
   deploy:
     runs-on: ubuntu-latest
