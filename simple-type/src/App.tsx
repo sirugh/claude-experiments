@@ -1,16 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import MathMode from './MathMode'
 import ReadingMode from './ReadingMode'
 
 type Mode = 'math' | 'reading'
 
+const MODE_KEY = 'app:simple-type:mode'
+
 function App() {
-  const [mode, setMode] = useState<Mode>('math')
+  const [mode, setMode] = useState<Mode>(() => {
+    const savedMode = localStorage.getItem(MODE_KEY)
+    return (savedMode === 'math' || savedMode === 'reading') ? savedMode : 'math'
+  })
 
   const toggleMode = () => {
     setMode(mode === 'math' ? 'reading' : 'math')
   }
+
+  useEffect(() => {
+    localStorage.setItem(MODE_KEY, mode)
+  }, [mode])
 
   return (
     <div className="app">
