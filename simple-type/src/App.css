@@ -56,6 +56,45 @@
   transform: translateX(0);
 }
 
+@media (max-width: 768px) {
+  .mode-toggle-container {
+    top: 10px;
+    left: 10px;
+    gap: 0.6em;
+  }
+
+  .toggle-label {
+    font-size: 0.9em;
+  }
+
+  .mode-toggle {
+    width: 50px;
+    height: 26px;
+    border-radius: 13px;
+  }
+
+  .toggle-slider {
+    width: 18px;
+    height: 18px;
+  }
+
+  .mode-toggle.math .toggle-slider {
+    transform: translateX(24px);
+  }
+}
+
+@media (max-width: 480px) {
+  .mode-toggle-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+  }
+
+  .toggle-label {
+    font-size: 0.85em;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   .mode-toggle {
     background-color: rgba(255, 255, 255, 0.5);
