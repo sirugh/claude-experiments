@@ -292,15 +292,21 @@ function MathMode() {
 
     if (isCorrect) {
       setScore(score + 1);
-    }
 
-    // Clear feedback and generate new problem after delay
-    setTimeout(() => {
-      setFeedback(null);
-      setUserAnswer('');
-      const newProblem = generateProblem();
-      setProblem(newProblem);
-    }, 800);
+      // Generate new problem after delay (only on correct answer)
+      setTimeout(() => {
+        setFeedback(null);
+        setUserAnswer('');
+        const newProblem = generateProblem();
+        setProblem(newProblem);
+      }, 800);
+    } else {
+      // Allow retry after brief delay
+      setTimeout(() => {
+        setFeedback(null);
+        setUserAnswer('');
+      }, 500);
+    }
   };
 
   const handleTileClick = (selectedAnswer: number, event: React.MouseEvent<HTMLButtonElement>) => {
