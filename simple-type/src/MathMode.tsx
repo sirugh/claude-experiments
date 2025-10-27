@@ -391,64 +391,68 @@ function MathMode() {
 
   return (
     <div className="math-mode">
-      <button className="reset-button" onClick={handleReset}>
-        Reset
-      </button>
+      <div className="math-mode-header">
+        <button className="reset-button" onClick={handleReset}>
+          Reset
+        </button>
+      </div>
 
-      <div className="score-display">Score: {score}</div>
+      <div className="math-mode-content">
+        <div className="score-display">Score: {score}</div>
 
-      {config.mode === 'standard' ? (
-        <div className={`problem-container ${feedback || ''}`}>
-          <form onSubmit={handleSubmit}>
-            <div className="problem">
-              <div className="problem-line">
-                <span className="number">{problem.num1}</span>
+        {config.mode === 'standard' ? (
+          <div className={`problem-container ${feedback || ''}`}>
+            <form onSubmit={handleSubmit}>
+              <div className="problem">
+                <div className="problem-line">
+                  <span className="number">{problem.num1}</span>
+                </div>
+                <div className="problem-line">
+                  <span className="operator">{getOperationSymbol(problem.operation)}</span>
+                  <span className="number">{problem.num2}</span>
+                </div>
+                <div className="problem-line separator"></div>
+                <div className="problem-line">
+                  <input
+                    ref={inputRef}
+                    type="number"
+                    value={userAnswer}
+                    onChange={(e) => setUserAnswer(e.target.value)}
+                    className="answer-input"
+                    autoFocus
+                  />
+                </div>
               </div>
-              <div className="problem-line">
-                <span className="operator">{getOperationSymbol(problem.operation)}</span>
-                <span className="number">{problem.num2}</span>
-              </div>
-              <div className="problem-line separator"></div>
-              <div className="problem-line">
-                <input
-                  ref={inputRef}
-                  type="number"
-                  value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
-                  className="answer-input"
-                  autoFocus
-                />
-              </div>
+            </form>
+          </div>
+        ) : (
+          <div className="tiles-mode">
+            <div className="tiles-question">
+              <span className="tiles-problem">
+                {problem.num1} {getOperationSymbol(problem.operation)} {problem.num2} = ?
+              </span>
             </div>
-          </form>
-        </div>
-      ) : (
-        <div className="tiles-mode">
-          <div className="tiles-question">
-            <span className="tiles-problem">
-              {problem.num1} {getOperationSymbol(problem.operation)} {problem.num2} = ?
-            </span>
+            <div className={`tiles-container ${feedback || ''}`}>
+              {tileOptions.map((option) => (
+                <button
+                  key={`${problem.num1}-${problem.num2}-${problem.operation}-${option}`}
+                  className={`tile ${
+                    selectedTile === option
+                      ? option === problem.answer
+                        ? 'correct'
+                        : 'wrong'
+                      : ''
+                  }`}
+                  onClick={(e) => handleTileClick(option, e)}
+                  disabled={selectedTile !== null}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className={`tiles-container ${feedback || ''}`}>
-            {tileOptions.map((option) => (
-              <button
-                key={`${problem.num1}-${problem.num2}-${problem.operation}-${option}`}
-                className={`tile ${
-                  selectedTile === option
-                    ? option === problem.answer
-                      ? 'correct'
-                      : 'wrong'
-                    : ''
-                }`}
-                onClick={(e) => handleTileClick(option, e)}
-                disabled={selectedTile !== null}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
