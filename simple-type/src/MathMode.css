@@ -5,6 +5,135 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 2em;
+  box-sizing: border-box;
+  gap: 2em;
+}
+
+.math-mode-header {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.reset-button {
+  padding: 0.75em 1.5em;
+  font-size: 1em;
+  font-weight: bold;
+  background-color: #646cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.reset-button:hover {
+  background-color: #535bf2;
+}
+
+.reset-button:active {
+  transform: scale(0.95);
+}
+
+.math-mode-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2em;
+  flex: 1;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Start Screen */
+.start-screen {
+  text-align: center;
+  padding: 2em;
+  max-width: 600px;
+}
+
+.start-screen h1 {
+  font-size: 3em;
+  margin-bottom: 0.5em;
+  color: var(--primary-color, #646cff);
+}
+
+.start-screen .instructions {
+  font-size: 1.3em;
+  margin-bottom: 2em;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.start-button {
+  font-size: 1.5em;
+  padding: 0.8em 2em;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--primary-color, #646cff);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
+  font-weight: 600;
+}
+
+.start-button:hover {
+  background-color: #535bf2;
+  transform: scale(1.05);
+}
+
+.start-button:active {
+  transform: scale(0.98);
+}
+
+/* Configuration Options */
+.config-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+  margin: 2em 0;
+  align-items: center;
+}
+
+.config-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 1.3em;
+  cursor: pointer;
+  user-select: none;
+  padding: 1em 2em;
+  border: 2px solid rgba(100, 108, 255, 0.3);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 300px;
+  transition: all 0.2s ease;
+}
+
+.config-option:hover {
+  border-color: rgba(100, 108, 255, 0.5);
+  background-color: rgba(100, 108, 255, 0.05);
+}
+
+.config-option input[type="radio"] {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--primary-color, #646cff);
+}
+
+.config-option span {
+  font-weight: 500;
+}
+
+.mode-description {
+  font-size: 0.8em;
+  opacity: 0.7;
+  font-weight: 400 !important;
 }
 
 @keyframes flash-green {
@@ -29,33 +158,9 @@
   }
 }
 
-.reset-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 0.75em 1.5em;
-  font-size: 1em;
-  font-weight: bold;
-  background-color: #646cff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.reset-button:hover {
-  background-color: #535bf2;
-}
-
-.reset-button:active {
-  transform: scale(0.95);
-}
-
 .score-display {
   font-size: 2.5em;
   font-weight: bold;
-  margin-bottom: 2em;
   text-align: center;
 }
 
@@ -113,7 +218,7 @@
   font-family: inherit;
   font-weight: bold;
   outline: none;
-  padding: 0.2em;
+  padding: 0;
   caret-color: #646cff;
 }
 
@@ -132,7 +237,112 @@
   user-select: none;
 }
 
+/* Tiles Mode */
+.tiles-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3em;
+  width: 100%;
+  max-width: 600px;
+}
+
+.tiles-question {
+  font-size: 3em;
+  font-weight: bold;
+  text-align: center;
+  padding: 1em;
+  border-radius: 16px;
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.tiles-problem {
+  user-select: none;
+}
+
+.tiles-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5em;
+  width: 100%;
+}
+
+.tile {
+  font-size: 2.5em;
+  font-weight: bold;
+  padding: 1em;
+  border: 3px solid #646cff;
+  border-radius: 16px;
+  background-color: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile:hover:not(:disabled) {
+  background-color: rgba(100, 108, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.tile:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.tile:disabled {
+  cursor: default;
+}
+
+.tile.correct {
+  background-color: rgba(0, 255, 0, 0.2);
+  border-color: rgb(0, 200, 0);
+  animation: tile-correct 0.8s ease;
+}
+
+.tile.wrong {
+  background-color: rgba(255, 0, 0, 0.2);
+  border-color: rgb(200, 0, 0);
+  animation: tile-wrong 0.5s ease;
+}
+
+@keyframes tile-correct {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+    background-color: rgba(0, 255, 0, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+}
+
+@keyframes tile-wrong {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  75% {
+    transform: translateX(10px);
+  }
+}
+
 @media (max-width: 768px) {
+  .start-screen h1 {
+    font-size: 2.5em;
+  }
+
+  .start-screen .instructions {
+    font-size: 1.1em;
+  }
+
   .problem {
     font-size: 3em;
   }
@@ -149,17 +359,57 @@
   .reset-button {
     font-size: 0.9em;
     padding: 0.6em 1.2em;
-    top: 15px;
-    right: 15px;
   }
 
   .problem-container {
     padding: 1.5em;
     min-height: 220px;
   }
+
+  .tiles-question {
+    font-size: 2.5em;
+    padding: 0.8em;
+  }
+
+  .tile {
+    font-size: 2em;
+    min-height: 100px;
+  }
+
+  .tiles-container {
+    gap: 1.2em;
+  }
 }
 
 @media (max-width: 480px) {
+  .start-screen {
+    padding: 1em;
+  }
+
+  .start-screen h1 {
+    font-size: 2em;
+  }
+
+  .start-screen .instructions {
+    font-size: 1em;
+    margin-bottom: 1.5em;
+  }
+
+  .config-options {
+    gap: 1em;
+    margin: 1.5em 0;
+  }
+
+  .config-option {
+    font-size: 1.1em;
+    padding: 0.8em 1.5em;
+  }
+
+  .start-button {
+    font-size: 1.2em;
+    padding: 0.6em 1.5em;
+  }
+
   .problem {
     font-size: 2.8em;
     gap: 0.2em;
@@ -178,8 +428,11 @@
   .reset-button {
     font-size: 0.85em;
     padding: 0.5em 1em;
-    top: 10px;
-    right: 10px;
+  }
+
+  .math-mode {
+    padding: 1em;
+    gap: 1em;
   }
 
   .problem-container {
@@ -189,5 +442,25 @@
 
   .answer-input {
     width: 2em;
+  }
+
+  .tiles-mode {
+    gap: 2em;
+    padding: 0 1em;
+  }
+
+  .tiles-question {
+    font-size: 2em;
+    padding: 0.6em;
+  }
+
+  .tile {
+    font-size: 1.8em;
+    min-height: 80px;
+    padding: 0.8em;
+  }
+
+  .tiles-container {
+    gap: 1em;
   }
 }
