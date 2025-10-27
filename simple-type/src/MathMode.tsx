@@ -303,8 +303,11 @@ function MathMode() {
     }, 800);
   };
 
-  const handleTileClick = (selectedAnswer: number) => {
+  const handleTileClick = (selectedAnswer: number, event: React.MouseEvent<HTMLButtonElement>) => {
     if (!problem || selectedTile !== null) return;
+
+    // Immediately blur the clicked button to prevent focus/highlight persistence
+    event.currentTarget.blur();
 
     setSelectedTile(selectedAnswer);
     const isCorrect = selectedAnswer === problem.answer;
@@ -322,20 +325,12 @@ function MathMode() {
         const newProblem = generateProblem();
         setProblem(newProblem);
         setTileOptions(generateTileOptions(newProblem.answer));
-        // Remove focus from the previously clicked tile
-        if (document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
       }, 800);
     } else {
       // Allow retry after brief delay
       setTimeout(() => {
         setFeedback(null);
         setSelectedTile(null);
-        // Remove focus from the incorrect tile
-        if (document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
       }, 500);
     }
   };
@@ -445,7 +440,7 @@ function MathMode() {
                       : 'wrong'
                     : ''
                 }`}
-                onClick={() => handleTileClick(option)}
+                onClick={(e) => handleTileClick(option, e)}
                 disabled={selectedTile !== null}
               >
                 {option}
