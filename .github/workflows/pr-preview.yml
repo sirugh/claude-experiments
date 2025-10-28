@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'simple-type/**'
+      - 'housing-market-data/**'
       - '.github/workflows/pr-preview.yml'
 
 permissions:
@@ -22,18 +23,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: simple-type/package-lock.json
 
-      - name: Install dependencies
+      - name: Install simple-type dependencies
         run: npm ci
         working-directory: ./simple-type
 
-      - name: Build with PR base path
+      - name: Build simple-type with PR base path
         run: npm run build
         working-directory: ./simple-type
         env:
           VITE_BASE_PATH: /claude-experiments/_pr/${{ github.event.pull_request.number }}/simple-type/
+
+      - name: Install housing-market-data dependencies
+        run: npm ci
+        working-directory: ./housing-market-data
+
+      - name: Build housing-market-data with PR base path
+        run: npm run build
+        working-directory: ./housing-market-data
+        env:
+          VITE_BASE_PATH: /claude-experiments/_pr/${{ github.event.pull_request.number }}/housing-market-data/
 
       - name: Checkout or create gh-pages branch
         run: |
@@ -58,11 +67,13 @@ jobs:
 
       - name: Deploy to PR preview directory
         run: |
-          # Create PR preview directory
+          # Create PR preview directories
           mkdir -p gh-pages/_pr/${{ github.event.pull_request.number }}/simple-type
+          mkdir -p gh-pages/_pr/${{ github.event.pull_request.number }}/housing-market-data
 
           # Copy built files
           cp -r simple-type/dist/* gh-pages/_pr/${{ github.event.pull_request.number }}/simple-type/
+          cp -r housing-market-data/dist/* gh-pages/_pr/${{ github.event.pull_request.number }}/housing-market-data/
 
           # Ensure .nojekyll exists to disable Jekyll processing
           cd gh-pages
@@ -81,12 +92,14 @@ jobs:
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
-            const previewUrl = `https://${{ github.repository_owner }}.github.io/claude-experiments/_pr/${prNumber}/simple-type/`;
+            const simpleTypeUrl = `https://${{ github.repository_owner }}.github.io/claude-experiments/_pr/${prNumber}/simple-type/`;
+            const housingDataUrl = `https://${{ github.repository_owner }}.github.io/claude-experiments/_pr/${prNumber}/housing-market-data/`;
 
             const comment = `## 🔍 PR Preview Deployed
 
-            Your preview is ready at:
-            **${previewUrl}**
+            Your previews are ready:
+            - **Simple Type**: ${simpleTypeUrl}
+            - **Housing Market Data**: ${housingDataUrl}
 
             This preview will be automatically removed when the PR is closed or merged.`;
 

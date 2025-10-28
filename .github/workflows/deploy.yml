@@ -1,4 +1,4 @@
-name: Deploy Simple Type to GitHub Pages
+name: Deploy Experiments to GitHub Pages
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'simple-type/**'
+      - 'housing-market-data/**'
       - '.github/workflows/deploy.yml'
       - 'index.html'
   workflow_dispatch:
@@ -28,16 +29,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: simple-type/package-lock.json
 
-      - name: Install dependencies
+      - name: Install simple-type dependencies
         run: npm ci
         working-directory: ./simple-type
 
-      - name: Build
+      - name: Build simple-type
         run: npm run build
         working-directory: ./simple-type
+
+      - name: Install housing-market-data dependencies
+        run: npm ci
+        working-directory: ./housing-market-data
+
+      - name: Build housing-market-data
+        run: npm run build
+        working-directory: ./housing-market-data
 
       - name: Clone gh-pages branch
         run: |
@@ -69,7 +76,9 @@ jobs:
           # Copy new production files
           cd ..
           mkdir -p gh-pages/simple-type
+          mkdir -p gh-pages/housing-market-data
           cp -r simple-type/dist/* gh-pages/simple-type/
+          cp -r housing-market-data/dist/* gh-pages/housing-market-data/
           cp index.html gh-pages/
 
           # Restore _pr directories
