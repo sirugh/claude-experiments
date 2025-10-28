@@ -17,13 +17,27 @@ This repository includes:
 Educational web app for first graders featuring adaptive math and reading exercises.
 
 - **Live**: [https://sirugh.github.io/claude-experiments/simple-type/](https://sirugh.github.io/claude-experiments/simple-type/)
-- **Tech Stack**: React 18, TypeScript, Vite
+- **Tech Stack**: React 19, TypeScript, Vite
 - **Features**:
   - Adaptive math problems with progressive difficulty (6 levels)
   - Dynamic difficulty adjustment based on performance
   - Visual feedback and score tracking
   - Reading mode (coming soon)
 - **Documentation**: [simple-type/README.md](./simple-type/README.md)
+
+### Housing Market Data
+A comprehensive real estate property browser with interactive maps and advanced filtering.
+
+- **Live**: [https://sirugh.github.io/claude-experiments/housing-market-data/](https://sirugh.github.io/claude-experiments/housing-market-data/)
+- **Tech Stack**: React 19, TypeScript, Vite, Leaflet, Vitest
+- **Features**:
+  - Interactive map view with property markers
+  - Detailed list view with property cards
+  - Advanced filtering (price, size, bedrooms, bathrooms, amenities, status)
+  - Full property detail modal with image gallery
+  - Mock data service (ready for real API integration)
+  - Comprehensive unit tests
+- **Documentation**: [housing-market-data/README.md](./housing-market-data/README.md)
 
 ## Repository Structure
 
@@ -34,9 +48,15 @@ claude-experiments/
 │   └── skills/
 │       └── scaffold-experiment.md  # Skill for creating new experiments
 ├── .github/workflows/      # GitHub Actions for automated deployment
-├── simple-type/            # First experiment
+├── simple-type/            # Educational app for first graders
 │   ├── .claude/            # Experiment-specific configuration
 │   ├── src/                # React source code
+│   └── package.json
+├── housing-market-data/    # Real estate property browser
+│   ├── src/                # React source code with tests
+│   ├── components/         # UI components
+│   ├── services/           # Data and filtering services
+│   ├── types/              # TypeScript type definitions
 │   └── package.json
 └── README.md              # This file
 ```
