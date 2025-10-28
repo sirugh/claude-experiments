@@ -10,8 +10,9 @@ This repository has an automated PR preview system that deploys every pull reque
 
 1. When a PR is created or updated, the `.github/workflows/pr-preview.yml` workflow triggers
 2. The workflow:
-   - Builds the `simple-type` app with a PR-specific base path
-   - Deploys the build to the `gh-pages` branch under `_pr/<number>/simple-type/`
+   - Detects which app directory has changes (simple-type, housing-market-data, etc.)
+   - Only builds the changed app (efficient, no wasted builds)
+   - Deploys the build to the `gh-pages` branch under `_pr/<number>/`
    - Adds a `.nojekyll` file to disable Jekyll processing (which would ignore `_pr/` due to underscore prefix)
    - Posts a comment on the PR with the preview URL
 3. The preview remains live until the PR is closed or merged, then gets cleaned up by `.github/workflows/pr-cleanup.yml`
@@ -20,13 +21,15 @@ This repository has an automated PR preview system that deploys every pull reque
 
 PR previews are available at:
 ```
-https://sirugh.github.io/claude-experiments/_pr/<PR_NUMBER>/simple-type/
+https://sirugh.github.io/claude-experiments/_pr/<PR_NUMBER>/
 ```
 
 For example, PR #10 would be at:
 ```
-https://sirugh.github.io/claude-experiments/_pr/10/simple-type/
+https://sirugh.github.io/claude-experiments/_pr/10/
 ```
+
+Note: Each PR should only modify one app at a time. The workflow automatically detects which app changed and deploys only that app to the PR preview URL.
 
 ### Important Instructions for Claude
 
@@ -35,15 +38,16 @@ https://sirugh.github.io/claude-experiments/_pr/10/simple-type/
 1. Output a clear message with the preview URL using the pattern above
 2. Explain that the preview is deployed automatically via GitHub Actions
 3. Note that deployment is asynchronous and may take 1-2 minutes to complete
+4. Mention which app will be deployed (based on what was changed)
 
-**Example output after creating PR #10:**
+**Example output after creating PR #10 for housing-market-data:**
 ```
 Pull request created successfully!
 
-PR Preview URL: https://sirugh.github.io/claude-experiments/_pr/10/simple-type/
+PR Preview URL: https://sirugh.github.io/claude-experiments/_pr/10/
 
-Note: The preview is deployed automatically via GitHub Actions. It may take 1-2 minutes
-for the deployment to complete. If you get a 404, wait a moment and refresh.
+Note: The housing-market-data app will be deployed automatically via GitHub Actions.
+It may take 1-2 minutes for the deployment to complete. If you get a 404, wait a moment and refresh.
 ```
 
 ### Deployment Timing
@@ -59,13 +63,15 @@ If a preview shows 404:
 1. Check that `.nojekyll` exists in the root of the `gh-pages` branch
 2. Verify GitHub Pages is enabled in repository settings (should use `gh-pages` branch, `/` root)
 3. Check the workflow logs in the GitHub Actions tab for deployment errors
-4. Ensure the `_pr/<number>/simple-type/` directory exists on the `gh-pages` branch
+4. Ensure the `_pr/<number>/` directory exists on the `gh-pages` branch
+5. Verify that the workflow detected the correct app (check workflow logs for "Detected app" message)
 
 ## Repository Structure
 
 - `/simple-type/` - React app for first graders (math and reading exercises)
+- `/housing-market-data/` - Real estate property browser with maps and filtering
 - `/.github/workflows/` - GitHub Actions workflows
-  - `pr-preview.yml` - Builds and deploys PR previews
+  - `pr-preview.yml` - Detects changed app, builds and deploys PR previews
   - `pr-cleanup.yml` - Removes preview when PR closes
   - `deploy.yml` - Deploys production to GitHub Pages
 - `/index.html` - Landing page for the experiments site
