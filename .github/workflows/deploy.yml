@@ -31,7 +31,7 @@ jobs:
           node-version: '20'
 
       - name: Install simple-type dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: ./simple-type
 
       - name: Build simple-type
@@ -39,7 +39,7 @@ jobs:
         working-directory: ./simple-type
 
       - name: Install housing-market-data dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: ./housing-market-data
 
       - name: Build housing-market-data

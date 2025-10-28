@@ -66,7 +66,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.detect.outputs.should_build == 'true'
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: ./${{ steps.detect.outputs.app_dir }}
 
       - name: Build with PR base path
