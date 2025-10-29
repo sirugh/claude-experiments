@@ -1,6 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import './ReadingMode.css';
 import { READING_PARAGRAPHS, shuffleArray } from './readingParagraphs';
+import {
+  type Config,
+  isPunctuation,
+  shouldSkip,
+  skipDisabledChars,
+  processCharacterInput,
+} from './readingUtils';
 
 interface Score {
   correct: number;
@@ -12,12 +19,6 @@ interface HistoryEntry {
   date: string;
   score: Score;
   timestamp: number;
-}
-
-interface Config {
-  capitalLetters: boolean;
-  spaces: boolean;
-  punctuation: boolean;
 }
 
 const HISTORY_KEY = 'app:simple-type:history';
@@ -59,25 +60,6 @@ function ReadingMode() {
 
   // Ref for hidden input to trigger mobile keyboard
   const hiddenInputRef = useRef<HTMLInputElement>(null);
-
-  // Helper function to check if a character is punctuation
-  const isPunctuation = (char: string): boolean => {
-    return /[.,!?;:'"\-()[\]{}]/.test(char);
-  };
-
-  // Helper function to check if a character should be skipped
-  const shouldSkip = (char: string): boolean => {
-    return (!config.spaces && char === ' ') || (!config.punctuation && isPunctuation(char));
-  };
-
-  // Helper function to skip consecutive disabled characters
-  const skipDisabledChars = (startIndex: number): number => {
-    let index = startIndex;
-    while (index < currentParagraph.length && shouldSkip(currentParagraph[index])) {
-      index++;
-    }
-    return index;
-  };
 
   // Use shuffled pre-written paragraphs
   const paragraphs = useMemo(() => {
@@ -126,30 +108,12 @@ function ReadingMode() {
         e.preventDefault();
       }
 
-      let expectedChar = currentParagraph[currentCharIndex];
-
-      // Skip all consecutive disabled characters (spaces and/or punctuation)
-      if (shouldSkip(expectedChar)) {
-        const nextIndex = skipDisabledChars(currentCharIndex);
-        setCurrentCharIndex(nextIndex);
-        return;
-      }
-
       const typedChar = e.key;
+      const result = processCharacterInput(typedChar, currentCharIndex, currentParagraph, config);
 
-      // Check if the typed character matches
-      // Case-sensitive if capitalLetters enabled, case-insensitive if disabled
-      const isMatch = config.capitalLetters
-        ? expectedChar === typedChar
-        : expectedChar.toLowerCase() === typedChar.toLowerCase();
-
-      if (isMatch) {
+      if (result.isCorrect) {
         setCorrect(prev => prev + 1);
-        const nextIndex = currentCharIndex + 1;
-
-        // Skip all consecutive disabled characters after this one
-        const finalIndex = skipDisabledChars(nextIndex);
-        setCurrentCharIndex(finalIndex);
+        setCurrentCharIndex(result.nextCharIndex);
       } else {
         setIncorrect(prev => prev + 1);
 
@@ -185,28 +149,11 @@ function ReadingMode() {
 
     // Get the last character typed
     const typedChar = value[value.length - 1];
-    let expectedChar = currentParagraph[currentCharIndex];
+    const result = processCharacterInput(typedChar, currentCharIndex, currentParagraph, config);
 
-    // Skip all consecutive disabled characters (spaces and/or punctuation)
-    if (shouldSkip(expectedChar)) {
-      const nextIndex = skipDisabledChars(currentCharIndex);
-      setCurrentCharIndex(nextIndex);
-      e.target.value = ''; // Clear input
-      return;
-    }
-
-    // Check if the typed character matches
-    const isMatch = config.capitalLetters
-      ? expectedChar === typedChar
-      : expectedChar.toLowerCase() === typedChar.toLowerCase();
-
-    if (isMatch) {
+    if (result.isCorrect) {
       setCorrect(prev => prev + 1);
-      const nextIndex = currentCharIndex + 1;
-
-      // Skip all consecutive disabled characters after this one
-      const finalIndex = skipDisabledChars(nextIndex);
-      setCurrentCharIndex(finalIndex);
+      setCurrentCharIndex(result.nextCharIndex);
     } else {
       setIncorrect(prev => prev + 1);
 
