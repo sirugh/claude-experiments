@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReadingMode from './ReadingMode';
 
@@ -169,9 +169,8 @@ describe('ReadingMode', () => {
 
       await user.click(screen.getByRole('button', { name: /Start/i }));
 
-      // Get the paragraph text
+      // Get the paragraph
       const paragraph = document.querySelector('.paragraph');
-      const paragraphText = paragraph?.textContent || '';
 
       // Type all characters (this is a simplified test - in reality we'd need to handle the exact logic)
       // For this test, we'll just verify the component structure is correct

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   type Operation,
-  type Problem,
   type DifficultyConfig,
   PROBLEM_TYPES,
   getDifficultyConfig,

@@ -3,9 +3,6 @@ import './ReadingMode.css';
 import { READING_PARAGRAPHS, shuffleArray } from './readingParagraphs';
 import {
   type Config,
-  isPunctuation,
-  shouldSkip,
-  skipDisabledChars,
   processCharacterInput,
 } from './readingUtils';
 

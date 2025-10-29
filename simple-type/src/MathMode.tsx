@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import './MathMode.css';
 import {
-  type Operation,
   type Problem,
   getDifficultyConfig,
   generateProblem,
