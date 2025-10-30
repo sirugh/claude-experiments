@@ -3,9 +3,6 @@ name: PR Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'simple-type/**'
-      - '.github/workflows/pr-preview.yml'
 
 permissions:
   contents: write
@@ -22,18 +19,39 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: simple-type/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
-        working-directory: ./simple-type
+      - name: Discover and build all apps
+        id: build
+        run: |
+          # Find all directories with package.json (excluding node_modules, .github, etc.)
+          echo "Discovering apps..."
+          apps=$(find . -maxdepth 2 -name "package.json" -not -path "*/node_modules/*" -not -path "*/.github/*" -not -path "./package.json" | xargs -I {} dirname {} | sed 's|^\./||')
 
-      - name: Build with PR base path
-        run: npm run build
-        working-directory: ./simple-type
-        env:
-          VITE_BASE_PATH: /claude-experiments/_pr/${{ github.event.pull_request.number }}/simple-type/
+          echo "Discovered apps: $apps"
+          
+          # Save apps list for later steps
+          echo "apps<<EOF" >> $GITHUB_OUTPUT
+          echo "$apps" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Build each app
+          for app in $apps; do
+            echo "======================================"
+            echo "Building $app..."
+            echo "======================================"
+            if [ -f "$app/package.json" ]; then
+              cd "$app"
+              npm ci
+              VITE_BASE_PATH="/claude-experiments/_pr/${{ github.event.pull_request.number }}/$app/" npm run build
+              cd ..
+            else
+              echo "Warning: $app/package.json not found, skipping..."
+            fi
+          done
+
+          echo "======================================"
+          echo "All apps built successfully!"
+          echo "======================================"
 
       - name: Checkout or create gh-pages branch
         run: |
@@ -58,11 +76,22 @@ jobs:
 
       - name: Deploy to PR preview directory
         run: |
-          # Create PR preview directory
-          mkdir -p gh-pages/_pr/${{ github.event.pull_request.number }}/simple-type
+          # Get list of apps from previous step
+          apps="${{ steps.build.outputs.apps }}"
 
-          # Copy built files
-          cp -r simple-type/dist/* gh-pages/_pr/${{ github.event.pull_request.number }}/simple-type/
+          echo "Deploying apps: $apps"
+
+          # Deploy each app
+          for app in $apps; do
+            echo "Deploying $app..."
+            if [ -d "$app/dist" ]; then
+              mkdir -p gh-pages/_pr/${{ github.event.pull_request.number }}/$app
+              cp -r $app/dist/* gh-pages/_pr/${{ github.event.pull_request.number }}/$app/
+              echo "✓ $app deployed successfully"
+            else
+              echo "Warning: $app/dist not found, skipping deployment..."
+            fi
+          done
 
           # Ensure .nojekyll exists to disable Jekyll processing
           cd gh-pages
@@ -81,14 +110,31 @@ jobs:
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
-            const previewUrl = `https://${{ github.repository_owner }}.github.io/claude-experiments/_pr/${prNumber}/simple-type/`;
+            const baseUrl = `https://${{ github.repository_owner }}.github.io/claude-experiments/_pr/${prNumber}`;
+
+            // Get list of apps from the build step
+            const appsString = `${{ steps.build.outputs.apps }}`;
+            const apps = appsString.trim().split('\n').filter(Boolean);
+
+            console.log('Apps discovered:', apps);
+
+            // Generate preview URLs for each app
+            const appLinks = apps.map(app => {
+              const appName = app.split('/').pop(); // Get directory name
+              const displayName = appName
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+              return `- **${displayName}**: ${baseUrl}/${app}/`;
+            }).join('\n');
 
             const comment = `## 🔍 PR Preview Deployed
 
-            Your preview is ready at:
-            **${previewUrl}**
+            Your preview${apps.length > 1 ? 's are' : ' is'} ready:
 
-            This preview will be automatically removed when the PR is closed or merged.`;
+            ${appLinks}
+
+            ${apps.length > 1 ? 'These previews' : 'This preview'} will be automatically removed when the PR is closed or merged.`;
 
             // Find existing preview comment
             const { data: comments } = await github.rest.issues.listComments({

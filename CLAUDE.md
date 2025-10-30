@@ -4,45 +4,61 @@ This document provides important context and instructions for Claude (or other A
 
 ## PR Preview System
 
-This repository has an automated PR preview system that deploys every pull request to a preview URL on GitHub Pages.
+This repository has an automated PR preview system that **automatically discovers and deploys all apps** in every pull request to preview URLs on GitHub Pages.
 
 ### How It Works
 
 1. When a PR is created or updated, the `.github/workflows/pr-preview.yml` workflow triggers
 2. The workflow:
-   - Builds the `simple-type` app with a PR-specific base path
-   - Deploys the build to the `gh-pages` branch under `_pr/<number>/simple-type/`
+   - **Automatically discovers** all directories containing a `package.json` file at the root level
+   - Excludes special directories like `node_modules/`, `.github/`, and the root `package.json`
+   - Builds each discovered app with a PR-specific base path
+   - Deploys all apps to the `gh-pages` branch under `_pr/<number>/<app-name>/`
    - Adds a `.nojekyll` file to disable Jekyll processing (which would ignore `_pr/` due to underscore prefix)
-   - Posts a comment on the PR with the preview URL
-3. The preview remains live until the PR is closed or merged, then gets cleaned up by `.github/workflows/pr-cleanup.yml`
+   - Posts a comment on the PR with preview URLs for **all discovered apps**
+3. The previews remain live until the PR is closed or merged, then get cleaned up by `.github/workflows/pr-cleanup.yml`
 
 ### Preview URL Pattern
 
 PR previews are available at:
 ```
-https://sirugh.github.io/claude-experiments/_pr/<PR_NUMBER>/simple-type/
+https://sirugh.github.io/claude-experiments/_pr/<PR_NUMBER>/<APP_NAME>/
 ```
 
-For example, PR #10 would be at:
+For example, PR #10 with `simple-type` and `chess-teacher` apps would be at:
 ```
 https://sirugh.github.io/claude-experiments/_pr/10/simple-type/
+https://sirugh.github.io/claude-experiments/_pr/10/chess-teacher/
 ```
+
+### Adding a New App
+
+To add a new app that will be **automatically discovered and deployed**:
+
+1. Create a new directory at the root level (e.g., `my-new-app/`)
+2. Add a `package.json` with a `build` script
+3. Ensure the build outputs to a `dist/` directory
+4. Commit and create a PR - the workflow will automatically discover and deploy it!
+
+**No workflow changes needed** - the system is fully generic and will discover any new app automatically.
 
 ### Important Instructions for Claude
 
-**After creating or updating a pull request, you MUST inform the user about the preview URL:**
+**After creating or updating a pull request, you MUST inform the user about the preview URLs:**
 
-1. Output a clear message with the preview URL using the pattern above
-2. Explain that the preview is deployed automatically via GitHub Actions
+1. Output clear messages with the preview URLs for all apps using the pattern above
+2. Explain that previews are deployed automatically via GitHub Actions
 3. Note that deployment is asynchronous and may take 1-2 minutes to complete
 
-**Example output after creating PR #10:**
+**Example output after creating PR #10 with multiple apps:**
 ```
 Pull request created successfully!
 
-PR Preview URL: https://sirugh.github.io/claude-experiments/_pr/10/simple-type/
+PR Preview URLs:
+- Simple Type: https://sirugh.github.io/claude-experiments/_pr/10/simple-type/
+- Chess Teacher: https://sirugh.github.io/claude-experiments/_pr/10/chess-teacher/
 
-Note: The preview is deployed automatically via GitHub Actions. It may take 1-2 minutes
+Note: The previews are deployed automatically via GitHub Actions. They may take 1-2 minutes
 for the deployment to complete. If you get a 404, wait a moment and refresh.
 ```
 
@@ -64,11 +80,23 @@ If a preview shows 404:
 ## Repository Structure
 
 - `/simple-type/` - React app for first graders (math and reading exercises)
+- `/chess-teacher/` - Interactive chess tutorial system
 - `/.github/workflows/` - GitHub Actions workflows
-  - `pr-preview.yml` - Builds and deploys PR previews
-  - `pr-cleanup.yml` - Removes preview when PR closes
+  - `pr-preview.yml` - **Automatically discovers and deploys all apps** to PR previews
+  - `pr-cleanup.yml` - Removes previews when PR closes
   - `deploy.yml` - Deploys production to GitHub Pages
 - `/index.html` - Landing page for the experiments site
+- `/plan.md` - Implementation plans and architecture documentation
+
+### App Structure Requirements
+
+Each app in the root directory should follow this structure:
+```
+app-name/
+├── package.json       # Must include a "build" script
+├── dist/              # Build output directory
+└── src/               # Source code
+```
 
 ## Development Notes
 

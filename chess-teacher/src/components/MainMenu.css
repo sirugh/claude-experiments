@@ -1,0 +1,208 @@
+.main-menu {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.menu-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.menu-header h1 {
+  font-size: 3.5rem;
+  margin: 0;
+  color: #2c3e50;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+  font-size: 1.3rem;
+  color: #7f8c8d;
+  margin-top: 10px;
+}
+
+.menu-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.tutorial-section,
+.play-section {
+  background-color: #f8f9fa;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-section h2,
+.play-section h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 2rem;
+}
+
+.section-description {
+  color: #7f8c8d;
+  margin-bottom: 25px;
+}
+
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.lesson-card {
+  position: relative;
+  background-color: white;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  padding: 25px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.lesson-card:not(.locked):hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  border-color: #007bff;
+}
+
+.lesson-card.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f0f0f0;
+}
+
+.lesson-card.completed {
+  border-color: #28a745;
+  background-color: #f0fff4;
+}
+
+.lesson-number {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+.lesson-piece {
+  font-size: 4rem;
+  margin: 15px 0;
+}
+
+.lesson-title {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.completed-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #28a745;
+  color: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.lock-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+}
+
+.play-computer-button {
+  width: 100%;
+  padding: 30px;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex-direction: column;
+}
+
+.play-computer-button:not(:disabled):hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.play-computer-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #6c757d;
+}
+
+.button-icon {
+  font-size: 3rem;
+}
+
+.unlock-hint {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.progress-section {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.progress-section h3 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 30px;
+  background-color: #e9ecef;
+  border-radius: 15px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+  transition: width 0.5s ease;
+}
+
+.progress-section p {
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .menu-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .lesson-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .lesson-piece {
+    font-size: 3rem;
+  }
+
+  .play-computer-button {
+    font-size: 1.2rem;
+    padding: 20px;
+  }
+}
