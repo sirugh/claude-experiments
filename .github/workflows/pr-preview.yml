@@ -24,23 +24,34 @@ jobs:
         id: build
         run: |
           # Find all directories with package.json (excluding node_modules, .github, etc.)
+          echo "Discovering apps..."
           apps=$(find . -maxdepth 2 -name "package.json" -not -path "*/node_modules/*" -not -path "*/.github/*" -not -path "./package.json" | xargs -I {} dirname {} | sed 's|^\./||')
 
           echo "Discovered apps: $apps"
+          
+          # Save apps list for later steps
           echo "apps<<EOF" >> $GITHUB_OUTPUT
           echo "$apps" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           # Build each app
           for app in $apps; do
+            echo "======================================"
             echo "Building $app..."
+            echo "======================================"
             if [ -f "$app/package.json" ]; then
               cd "$app"
               npm ci
               VITE_BASE_PATH="/claude-experiments/_pr/${{ github.event.pull_request.number }}/$app/" npm run build
               cd ..
+            else
+              echo "Warning: $app/package.json not found, skipping..."
             fi
           done
+
+          echo "======================================"
+          echo "All apps built successfully!"
+          echo "======================================"
 
       - name: Checkout or create gh-pages branch
         run: |
@@ -68,12 +79,17 @@ jobs:
           # Get list of apps from previous step
           apps="${{ steps.build.outputs.apps }}"
 
+          echo "Deploying apps: $apps"
+
           # Deploy each app
           for app in $apps; do
             echo "Deploying $app..."
             if [ -d "$app/dist" ]; then
               mkdir -p gh-pages/_pr/${{ github.event.pull_request.number }}/$app
               cp -r $app/dist/* gh-pages/_pr/${{ github.event.pull_request.number }}/$app/
+              echo "✓ $app deployed successfully"
+            else
+              echo "Warning: $app/dist not found, skipping deployment..."
             fi
           done
 
@@ -99,6 +115,8 @@ jobs:
             // Get list of apps from the build step
             const appsString = `${{ steps.build.outputs.apps }}`;
             const apps = appsString.trim().split('\n').filter(Boolean);
+
+            console.log('Apps discovered:', apps);
 
             // Generate preview URLs for each app
             const appLinks = apps.map(app => {

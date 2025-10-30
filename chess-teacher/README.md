@@ -2,6 +2,8 @@
 
 An interactive chess tutorial system that teaches beginners how to play chess through step-by-step lessons and practice games.
 
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://sirugh.github.io/claude-experiments/chess-teacher/)
+
 ## Features
 
 ### Tutorial Lessons (6 Levels)
