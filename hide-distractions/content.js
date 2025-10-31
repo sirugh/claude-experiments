@@ -5,6 +5,61 @@ const hostname = window.location.hostname;
 
 console.log('[Hide Distractions] Content script loaded on:', hostname);
 
+// Find the best element to hide (not just the clicked target)
+function findBestElementToHide(element) {
+  // Interactive elements that should be hidden as a whole
+  const interactiveSelectors = [
+    'button',
+    'a',
+    '[role="button"]',
+    '[role="link"]',
+    '[onclick]',
+    '[role="dialog"]',
+    '[role="alertdialog"]',
+    '[role="banner"]',
+    '.modal',
+    '.popup',
+    '.dialog',
+    '.banner',
+    '.toast',
+    '.notification'
+  ];
+
+  // Check if we're inside an interactive element
+  let current = element;
+  let depth = 0;
+  const maxDepth = 5; // Don't traverse too far up
+
+  while (current && current !== document.body && depth < maxDepth) {
+    // Check if this element matches any interactive selectors
+    for (const selector of interactiveSelectors) {
+      try {
+        if (current.matches(selector)) {
+          console.log('[Hide Distractions] Found better parent:', current.tagName, selector);
+          return current;
+        }
+      } catch (e) {
+        // Invalid selector, skip
+      }
+    }
+
+    // If element has an ID or meaningful class, it might be a good candidate
+    if (current.id || (current.className && typeof current.className === 'string' && current.className.length > 0)) {
+      // But only if it's not too deep
+      if (depth > 0) {
+        console.log('[Hide Distractions] Found meaningful parent:', current.tagName);
+        return current;
+      }
+    }
+
+    current = current.parentElement;
+    depth++;
+  }
+
+  // If nothing better found, return original element
+  return element;
+}
+
 // Generate a unique CSS selector for an element
 function getUniqueSelector(element) {
   if (element.id) {
@@ -42,6 +97,89 @@ function getUniqueSelector(element) {
   }
 
   return path.join(' > ');
+}
+
+// Show preview and confirmation dialog
+function showPreviewAndConfirm(element) {
+  return new Promise((resolve) => {
+    // Remove any existing preview
+    removePreview();
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'hide-distractions-preview-overlay';
+    document.body.appendChild(overlay);
+
+    // Highlight the target element
+    element.classList.add('hide-distractions-preview-target');
+
+    // Scroll element into view if needed
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Get element info for display
+    const metadata = getElementMetadata(element);
+    const selector = getUniqueSelector(element);
+
+    // Create confirmation dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'hide-distractions-confirm-dialog';
+    dialog.innerHTML = `
+      <h3>Hide this element?</h3>
+      <p>The highlighted element will be made invisible on this page.</p>
+      <div class="element-info">
+        <div class="element-tag">&lt;${metadata.tagName}&gt;</div>
+        <div>${metadata.textContent.substring(0, 100)}${metadata.textContent.length > 100 ? '...' : ''}</div>
+      </div>
+      <div class="hide-distractions-confirm-buttons">
+        <button class="hide-distractions-confirm-button hide-distractions-confirm-no">Cancel</button>
+        <button class="hide-distractions-confirm-button hide-distractions-confirm-yes">Hide Element</button>
+      </div>
+    `;
+    document.body.appendChild(dialog);
+
+    // Handle button clicks
+    const yesButton = dialog.querySelector('.hide-distractions-confirm-yes');
+    const noButton = dialog.querySelector('.hide-distractions-confirm-no');
+
+    yesButton.addEventListener('click', () => {
+      removePreview();
+      resolve(true);
+    });
+
+    noButton.addEventListener('click', () => {
+      removePreview();
+      resolve(false);
+    });
+
+    // Handle escape key
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        removePreview();
+        resolve(false);
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+
+    // Store references for cleanup
+    overlay._escapeHandler = escapeHandler;
+  });
+}
+
+// Remove preview overlay and dialog
+function removePreview() {
+  const overlay = document.querySelector('.hide-distractions-preview-overlay');
+  const dialog = document.querySelector('.hide-distractions-confirm-dialog');
+  const target = document.querySelector('.hide-distractions-preview-target');
+
+  if (overlay) {
+    if (overlay._escapeHandler) {
+      document.removeEventListener('keydown', overlay._escapeHandler);
+    }
+    overlay.remove();
+  }
+  if (dialog) dialog.remove();
+  if (target) target.classList.remove('hide-distractions-preview-target');
 }
 
 // Hide an element using visibility (keeps layout)
@@ -163,31 +301,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
       }
 
-      const selector = getUniqueSelector(clickedElement);
-      const metadata = getElementMetadata(clickedElement);
-      console.log('[Hide Distractions] Hiding element:', selector);
+      // Find the best element to hide (may be a parent of clicked element)
+      const bestElement = findBestElementToHide(clickedElement);
+      console.log('[Hide Distractions] Target element:', bestElement.tagName);
 
-      // Check if this selector is already hidden
-      const exists = hiddenElements.find(el => el.selector === selector);
-      if (!exists) {
-        const elementData = {
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-          selector: selector,
-          tagName: metadata.tagName,
-          textContent: metadata.textContent,
-          timestamp: Date.now()
-        };
+      // Show preview and wait for confirmation
+      showPreviewAndConfirm(bestElement).then((confirmed) => {
+        if (confirmed) {
+          const selector = getUniqueSelector(bestElement);
+          const metadata = getElementMetadata(bestElement);
+          console.log('[Hide Distractions] Hiding element:', selector);
 
-        hiddenElements.push(elementData);
-        hideElement(elementData);
-        saveHiddenElements();
-        console.log('[Hide Distractions] Element hidden successfully');
-      } else {
-        console.log('[Hide Distractions] Element already hidden');
-      }
+          // Check if this selector is already hidden
+          const exists = hiddenElements.find(el => el.selector === selector);
+          if (!exists) {
+            const elementData = {
+              id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+              selector: selector,
+              tagName: metadata.tagName,
+              textContent: metadata.textContent,
+              timestamp: Date.now()
+            };
 
-      clickedElement = null;
-      sendResponse({ success: true });
+            hiddenElements.push(elementData);
+            hideElement(elementData);
+            saveHiddenElements();
+            console.log('[Hide Distractions] Element hidden successfully');
+          } else {
+            console.log('[Hide Distractions] Element already hidden');
+          }
+        } else {
+          console.log('[Hide Distractions] User cancelled');
+        }
+
+        clickedElement = null;
+        sendResponse({ success: true });
+      });
+
+      return true; // Will respond asynchronously
     } else if (request.action === 'showElement') {
       console.log('[Hide Distractions] Showing element:', request.id);
       showElement(request.id);
