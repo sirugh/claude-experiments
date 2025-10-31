@@ -3,6 +3,8 @@ let clickedElement = null;
 let hiddenElements = []; // Array of {id, selector, tagName, textContent, timestamp}
 const hostname = window.location.hostname;
 
+console.log('[Hide Distractions] Content script loaded on:', hostname);
+
 // Generate a unique CSS selector for an element
 function getUniqueSelector(element) {
   if (element.id) {
@@ -114,8 +116,13 @@ function loadHiddenElements() {
   chrome.runtime.sendMessage(
     { action: 'getHiddenElements', hostname: hostname },
     (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('[Hide Distractions] Error loading elements:', chrome.runtime.lastError.message);
+        return;
+      }
       if (response && response.hiddenElements) {
         hiddenElements = response.hiddenElements;
+        console.log('[Hide Distractions] Loaded', hiddenElements.length, 'hidden elements');
         hiddenElements.forEach(selector => {
           hideElement(selector);
         });
@@ -130,6 +137,12 @@ function saveHiddenElements() {
     action: 'saveHiddenElements',
     hostname: hostname,
     hiddenElements: hiddenElements
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('[Hide Distractions] Error saving elements:', chrome.runtime.lastError.message);
+      return;
+    }
+    console.log('[Hide Distractions] Saved', hiddenElements.length, 'elements');
   });
 }
 
@@ -140,34 +153,56 @@ document.addEventListener('contextmenu', (e) => {
 
 // Listen for messages from background script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'hideElement' && clickedElement) {
-    const selector = getUniqueSelector(clickedElement);
-    const metadata = getElementMetadata(clickedElement);
+  console.log('[Hide Distractions] Received message:', request.action);
 
-    // Check if this selector is already hidden
-    const exists = hiddenElements.find(el => el.selector === selector);
-    if (!exists) {
-      const elementData = {
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-        selector: selector,
-        tagName: metadata.tagName,
-        textContent: metadata.textContent,
-        timestamp: Date.now()
-      };
+  try {
+    if (request.action === 'hideElement') {
+      if (!clickedElement) {
+        console.warn('[Hide Distractions] No element was clicked');
+        sendResponse({ success: false, error: 'No element clicked' });
+        return true;
+      }
 
-      hiddenElements.push(elementData);
-      hideElement(elementData);
-      saveHiddenElements();
+      const selector = getUniqueSelector(clickedElement);
+      const metadata = getElementMetadata(clickedElement);
+      console.log('[Hide Distractions] Hiding element:', selector);
+
+      // Check if this selector is already hidden
+      const exists = hiddenElements.find(el => el.selector === selector);
+      if (!exists) {
+        const elementData = {
+          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          selector: selector,
+          tagName: metadata.tagName,
+          textContent: metadata.textContent,
+          timestamp: Date.now()
+        };
+
+        hiddenElements.push(elementData);
+        hideElement(elementData);
+        saveHiddenElements();
+        console.log('[Hide Distractions] Element hidden successfully');
+      } else {
+        console.log('[Hide Distractions] Element already hidden');
+      }
+
+      clickedElement = null;
+      sendResponse({ success: true });
+    } else if (request.action === 'showElement') {
+      console.log('[Hide Distractions] Showing element:', request.id);
+      showElement(request.id);
+      sendResponse({ success: true });
+    } else if (request.action === 'showAllElements') {
+      console.log('[Hide Distractions] Showing all elements');
+      showAllElements();
+      sendResponse({ success: true });
+    } else {
+      console.warn('[Hide Distractions] Unknown action:', request.action);
+      sendResponse({ success: false, error: 'Unknown action' });
     }
-
-    clickedElement = null;
-    sendResponse({ success: true });
-  } else if (request.action === 'showElement') {
-    showElement(request.id);
-    sendResponse({ success: true });
-  } else if (request.action === 'showAllElements') {
-    showAllElements();
-    sendResponse({ success: true });
+  } catch (error) {
+    console.error('[Hide Distractions] Error in message listener:', error);
+    sendResponse({ success: false, error: error.message });
   }
 
   return true;
@@ -191,3 +226,5 @@ observer.observe(document.documentElement, {
   childList: true,
   subtree: true
 });
+
+console.log('[Hide Distractions] Content script fully initialized and ready');

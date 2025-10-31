@@ -15,14 +15,18 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+  console.log('[Hide Distractions] Context menu clicked:', info.menuItemId, 'on tab', tab.id);
+
   if (info.menuItemId === 'hideElement') {
     chrome.tabs.sendMessage(tab.id, {
       action: 'hideElement',
       frameId: info.frameId
     }, (response) => {
-      // Ignore errors (e.g., on chrome:// pages where content scripts can't run)
       if (chrome.runtime.lastError) {
-        console.log('Content script not available:', chrome.runtime.lastError.message);
+        console.error('[Hide Distractions] Error sending hideElement message:', chrome.runtime.lastError.message);
+        console.error('[Hide Distractions] Tab URL:', tab.url);
+      } else {
+        console.log('[Hide Distractions] hideElement response:', response);
       }
     });
   } else if (info.menuItemId === 'showAllElements') {
@@ -30,9 +34,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       action: 'showAllElements',
       frameId: info.frameId
     }, (response) => {
-      // Ignore errors (e.g., on chrome:// pages where content scripts can't run)
       if (chrome.runtime.lastError) {
-        console.log('Content script not available:', chrome.runtime.lastError.message);
+        console.error('[Hide Distractions] Error sending showAllElements message:', chrome.runtime.lastError.message);
+        console.error('[Hide Distractions] Tab URL:', tab.url);
+      } else {
+        console.log('[Hide Distractions] showAllElements response:', response);
       }
     });
   }
