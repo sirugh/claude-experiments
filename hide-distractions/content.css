@@ -1,0 +1,16 @@
+/* Make hidden elements invisible but keep their space in the layout */
+.hide-distractions-hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+
+  /* Prevent the element from blocking interactions */
+  z-index: -1 !important;
+}
+
+/* Ensure that child elements are also hidden */
+.hide-distractions-hidden * {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
