@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hide Distractions Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+
+    .test-box {
+      padding: 20px;
+      margin: 20px 0;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .test-box h2 {
+      margin-top: 0;
+    }
+
+    #annoying-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 40px;
+      border: 3px solid red;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    #annoying-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ff9800;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+
+    .success {
+      background: #c8e6c9;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hide Distractions Extension Test Page</h1>
+
+  <div class="info">
+    <strong>Instructions:</strong>
+    <ol>
+      <li>Open DevTools (F12) and check the Console tab</li>
+      <li>You should see: <code>[Hide Distractions] Content script loaded on: [hostname]</code></li>
+      <li>Right-click on any of the elements below and select "Hide This Element"</li>
+      <li>The element should become invisible but keep its space in the layout</li>
+      <li>Click the extension icon to manage hidden elements</li>
+    </ol>
+  </div>
+
+  <div class="test-box" style="background: #ffcdd2;">
+    <h2>Test Element 1: Red Box</h2>
+    <p>Try to hide this entire box. When hidden, it should become invisible but the space should remain.</p>
+  </div>
+
+  <div class="test-box" style="background: #c5cae9;">
+    <h2>Test Element 2: Blue Box</h2>
+    <p>This is another element you can try hiding. The content includes some <strong>bold text</strong> and <em>italic text</em>.</p>
+  </div>
+
+  <div class="test-box" style="background: #c8e6c9;">
+    <h2>Test Element 3: Green Box</h2>
+    <p>Try hiding just the heading, or just this paragraph, or the entire box!</p>
+  </div>
+
+  <div id="annoying-popup">
+    <h2>🚨 ANNOYING POPUP! 🚨</h2>
+    <p>This is like a cookie notice or modal popup.</p>
+    <p>Try to hide this popup!</p>
+    <button>Close (doesn't work)</button>
+  </div>
+
+  <div id="annoying-banner">
+    🍪 This website uses cookies! Click here to accept! 🍪
+  </div>
+
+  <div class="success" style="margin-top: 100px;">
+    <strong>Expected behavior:</strong>
+    <ul>
+      <li>Hidden elements become completely invisible (opacity: 0)</li>
+      <li>They don't block clicks (pointer-events: none)</li>
+      <li>The page layout doesn't change (elements keep their space)</li>
+      <li>Hidden elements persist across page reloads</li>
+    </ul>
+  </div>
+
+  <script>
+    // Log that the page loaded
+    console.log('Test page loaded. Checking for content script...');
+
+    // Wait a moment for content script to load
+    setTimeout(() => {
+      const logs = performance.getEntriesByType('resource')
+        .filter(r => r.name.includes('content.js'));
+
+      if (logs.length > 0) {
+        console.log('✓ content.js was loaded');
+      } else {
+        console.warn('✗ content.js was NOT loaded');
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

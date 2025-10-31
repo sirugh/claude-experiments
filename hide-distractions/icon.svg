@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="58" fill="#1976d2" stroke="#1565c0" stroke-width="4"/>
+
+  <!-- Eye icon (representing "hide") -->
+  <g stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Eye outline -->
+    <path d="M 30 64 Q 64 40, 98 64" />
+    <path d="M 30 64 Q 64 88, 98 64" />
+
+    <!-- Diagonal line (strike-through to indicate "hidden") -->
+    <line x1="35" y1="85" x2="93" y2="43" stroke-width="8"/>
+  </g>
+</svg>
