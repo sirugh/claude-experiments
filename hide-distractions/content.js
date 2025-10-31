@@ -1,6 +1,6 @@
 // Store the element we right-clicked on
 let clickedElement = null;
-let hiddenElements = [];
+let hiddenElements = []; // Array of {id, selector, tagName, textContent, timestamp}
 const hostname = window.location.hostname;
 
 // Generate a unique CSS selector for an element
@@ -43,13 +43,58 @@ function getUniqueSelector(element) {
 }
 
 // Hide an element using visibility (keeps layout)
-function hideElement(selector) {
+function hideElement(selectorOrObject) {
+  const selector = typeof selectorOrObject === 'string' ? selectorOrObject : selectorOrObject.selector;
   const elements = document.querySelectorAll(selector);
   elements.forEach(el => {
     el.classList.add('hide-distractions-hidden');
     // Also set pointer-events to none so clicks pass through
     el.style.setProperty('pointer-events', 'none', 'important');
   });
+}
+
+// Get element metadata for display
+function getElementMetadata(element) {
+  const tagName = element.tagName.toLowerCase();
+  let textContent = '';
+
+  // Try to get meaningful text content
+  if (element.innerText) {
+    textContent = element.innerText.trim().substring(0, 100);
+  } else if (element.textContent) {
+    textContent = element.textContent.trim().substring(0, 100);
+  }
+
+  // If no text, try to get some identifying attributes
+  if (!textContent) {
+    if (element.getAttribute('aria-label')) {
+      textContent = element.getAttribute('aria-label');
+    } else if (element.getAttribute('title')) {
+      textContent = element.getAttribute('title');
+    } else if (element.alt) {
+      textContent = element.alt;
+    }
+  }
+
+  return {
+    tagName,
+    textContent: textContent || `<${tagName}>`
+  };
+}
+
+// Show a single hidden element by ID
+function showElement(id) {
+  const elementData = hiddenElements.find(el => el.id === id);
+  if (!elementData) return;
+
+  const elements = document.querySelectorAll(elementData.selector);
+  elements.forEach(el => {
+    el.classList.remove('hide-distractions-hidden');
+    el.style.removeProperty('pointer-events');
+  });
+
+  hiddenElements = hiddenElements.filter(el => el.id !== id);
+  saveHiddenElements();
 }
 
 // Show all hidden elements
@@ -97,14 +142,28 @@ document.addEventListener('contextmenu', (e) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'hideElement' && clickedElement) {
     const selector = getUniqueSelector(clickedElement);
+    const metadata = getElementMetadata(clickedElement);
 
-    if (!hiddenElements.includes(selector)) {
-      hiddenElements.push(selector);
-      hideElement(selector);
+    // Check if this selector is already hidden
+    const exists = hiddenElements.find(el => el.selector === selector);
+    if (!exists) {
+      const elementData = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        selector: selector,
+        tagName: metadata.tagName,
+        textContent: metadata.textContent,
+        timestamp: Date.now()
+      };
+
+      hiddenElements.push(elementData);
+      hideElement(elementData);
       saveHiddenElements();
     }
 
     clickedElement = null;
+    sendResponse({ success: true });
+  } else if (request.action === 'showElement') {
+    showElement(request.id);
     sendResponse({ success: true });
   } else if (request.action === 'showAllElements') {
     showAllElements();
