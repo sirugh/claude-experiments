@@ -111,6 +111,79 @@ This extension makes elements invisible rather than removing them from the DOM b
 - `activeTab`: To interact with the current tab
 - `<all_urls>`: To run on all websites (required for content script)
 
+## Testing
+
+The extension includes a comprehensive test suite to ensure reliability and correctness.
+
+### Running Tests
+
+```bash
+# Install dependencies
+npm install
+
+# Run all tests
+npm test
+
+# Run tests in watch mode (re-runs on file changes)
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+### Test Structure
+
+- **Unit Tests**: Individual function testing
+  - `tests/content.test.js` - Content script functions
+  - `tests/background.test.js` - Background script functions
+  - `tests/popup.test.js` - Popup UI logic
+
+- **Integration Tests**: Complete workflow testing
+  - `tests/integration.test.js` - End-to-end flows
+
+### What's Tested
+
+✅ **Smart Parent Detection**
+- Detects button parents when text inside is clicked
+- Finds modal/dialog parents for nested elements
+- Handles interactive elements (links, buttons, etc.)
+
+✅ **CSS Selector Generation**
+- Unique ID-based selectors
+- Class-based selectors
+- Special character escaping
+
+✅ **Element Metadata**
+- Tag name extraction
+- Text content extraction
+- Fallback to aria-label and title attributes
+
+✅ **Storage Operations**
+- Saving hidden elements per site
+- Loading hidden elements
+- Multi-site isolation
+- Clearing site data
+
+✅ **Preview and Confirmation**
+- Overlay creation
+- Element highlighting
+- Dialog interaction
+- Cleanup on cancel
+
+✅ **Message Passing**
+- Background ↔ Content script communication
+- Error handling
+- Frame targeting
+
+✅ **Complete Workflows**
+- Full hide element flow
+- Full show element flow
+- Show all elements flow
+
+### Test Coverage
+
+Run `npm run test:coverage` to see detailed coverage reports. The extension aims for >80% code coverage across all modules.
+
 ## Troubleshooting
 
 ### Extension not working?
