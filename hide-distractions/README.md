@@ -5,6 +5,8 @@ A Chrome extension that lets you hide distracting elements on web pages without 
 ## Features
 
 - **Right-click to hide**: Right-click any element and select "Hide This Element" from the context menu
+- **Preview before hiding**: See exactly what will be hidden with a teal highlight and confirmation dialog
+- **Smart element detection**: Automatically detects the best element to hide (e.g., hides the entire button, not just the text inside)
 - **Maintains layout**: Hidden elements become invisible but don't reflow the page layout
 - **Blocks interactions**: Hidden elements won't block clicks or interactions (useful for cookie notices, modal overlays, etc.)
 - **Persistent**: Hidden elements stay hidden across page reloads
@@ -40,7 +42,17 @@ Since this is a local development extension (not published to the Chrome Web Sto
 
 1. Right-click on any distracting element (ad, cookie notice, modal, etc.)
 2. Select **"Hide This Element"** from the context menu
-3. The element will become invisible but won't affect page layout
+3. A preview will appear:
+   - The page will blur/dim
+   - The target element will be highlighted with a **teal outline**
+   - The element will scroll into view if needed
+4. Review the confirmation dialog showing:
+   - Element type (tag name)
+   - Preview of the element's text content
+5. Click **"Hide Element"** to confirm, or **"Cancel"** to abort (or press Escape)
+6. The element will become invisible but won't affect page layout
+
+**Smart Detection**: If you click on text inside a button or link, the extension automatically detects and highlights the entire interactive element, not just the text.
 
 ### Managing Hidden Elements
 
