@@ -9,7 +9,9 @@ A Chrome extension that lets you hide distracting elements on web pages without 
 - **Blocks interactions**: Hidden elements won't block clicks or interactions (useful for cookie notices, modal overlays, etc.)
 - **Persistent**: Hidden elements stay hidden across page reloads
 - **Per-site storage**: Each website remembers its own hidden elements
-- **Easy management**: Use the extension popup to see and restore hidden elements
+- **Individual element management**: View all hidden elements with descriptions and selectively unhide them
+- **Smart metadata**: Automatically captures element information (tag, text, selector) for easy identification
+- **Timestamps**: See when each element was hidden
 
 ## Installation
 
@@ -43,9 +45,14 @@ Since this is a local development extension (not published to the Chrome Web Sto
 ### Managing Hidden Elements
 
 1. Click the extension icon in your toolbar
-2. See how many elements are hidden on the current site
-3. Use **"Show All Hidden Elements"** to restore all hidden elements
-4. Use **"Clear All Data for This Site"** to remove all saved rules
+2. View a detailed list of all hidden elements on the current site, including:
+   - Element type (tag name like `<div>`, `<button>`, etc.)
+   - Element description (text content or identifying attributes)
+   - CSS selector used to hide the element
+   - When the element was hidden
+3. Click the **"−" button** next to any element to unhide just that element
+4. Use **"Show All Hidden Elements"** to restore all hidden elements at once
+5. Use **"Clear All Data for This Site"** to remove all saved rules
 
 ### Use Cases
 
