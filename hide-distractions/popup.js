@@ -21,6 +21,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   // Show all hidden elements button
   document.getElementById('showAllButton').addEventListener('click', () => {
     chrome.tabs.sendMessage(tab.id, { action: 'showAllElements' }, () => {
+      if (chrome.runtime.lastError) {
+        console.log('Could not send message:', chrome.runtime.lastError.message);
+      }
       loadElements();
     });
   });
@@ -29,6 +32,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   document.getElementById('clearDataButton').addEventListener('click', () => {
     chrome.storage.local.remove([hostname], () => {
       chrome.tabs.sendMessage(tab.id, { action: 'showAllElements' }, () => {
+        if (chrome.runtime.lastError) {
+          console.log('Could not send message:', chrome.runtime.lastError.message);
+        }
         loadElements();
       });
     });
@@ -87,6 +93,9 @@ function displayElements(elements, tabId) {
       const id = e.target.getAttribute('data-id');
       if (id) {
         chrome.tabs.sendMessage(tabId, { action: 'showElement', id: id }, () => {
+          if (chrome.runtime.lastError) {
+            console.log('Could not send message:', chrome.runtime.lastError.message);
+          }
           // Reload elements after removing
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tab = tabs[0];

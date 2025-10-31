@@ -19,11 +19,21 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.sendMessage(tab.id, {
       action: 'hideElement',
       frameId: info.frameId
+    }, (response) => {
+      // Ignore errors (e.g., on chrome:// pages where content scripts can't run)
+      if (chrome.runtime.lastError) {
+        console.log('Content script not available:', chrome.runtime.lastError.message);
+      }
     });
   } else if (info.menuItemId === 'showAllElements') {
     chrome.tabs.sendMessage(tab.id, {
       action: 'showAllElements',
       frameId: info.frameId
+    }, (response) => {
+      // Ignore errors (e.g., on chrome:// pages where content scripts can't run)
+      if (chrome.runtime.lastError) {
+        console.log('Content script not available:', chrome.runtime.lastError.message);
+      }
     });
   }
 });
