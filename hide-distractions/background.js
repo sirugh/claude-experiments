@@ -15,28 +15,30 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  console.log('[Hide Distractions] Context menu clicked:', info.menuItemId, 'on tab', tab.id);
+  console.log('[Hide Distractions] Context menu clicked:', info.menuItemId, 'on tab', tab.id, 'frame', info.frameId);
+
+  const messageOptions = info.frameId ? { frameId: info.frameId } : {};
 
   if (info.menuItemId === 'hideElement') {
     chrome.tabs.sendMessage(tab.id, {
-      action: 'hideElement',
-      frameId: info.frameId
-    }, (response) => {
+      action: 'hideElement'
+    }, messageOptions, (response) => {
       if (chrome.runtime.lastError) {
         console.error('[Hide Distractions] Error sending hideElement message:', chrome.runtime.lastError.message);
         console.error('[Hide Distractions] Tab URL:', tab.url);
+        console.error('[Hide Distractions] Frame ID:', info.frameId);
       } else {
         console.log('[Hide Distractions] hideElement response:', response);
       }
     });
   } else if (info.menuItemId === 'showAllElements') {
     chrome.tabs.sendMessage(tab.id, {
-      action: 'showAllElements',
-      frameId: info.frameId
-    }, (response) => {
+      action: 'showAllElements'
+    }, messageOptions, (response) => {
       if (chrome.runtime.lastError) {
         console.error('[Hide Distractions] Error sending showAllElements message:', chrome.runtime.lastError.message);
         console.error('[Hide Distractions] Tab URL:', tab.url);
+        console.error('[Hide Distractions] Frame ID:', info.frameId);
       } else {
         console.log('[Hide Distractions] showAllElements response:', response);
       }
